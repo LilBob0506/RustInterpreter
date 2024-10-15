@@ -1,85 +1,93 @@
 #![allow(dead_code)]
 
 mod entities;
-mod scanner;
+mod error;
 mod expr;
-mod parser;
 mod interpreter;
+mod parser;
+mod scanner;
 mod stmt;
 
-use std::env::args;
-use std::fs;
-use std::io::Write;
-
 use entities::{Token, TokenType};
+use error::*;
 use interpreter::Interpreter;
+use std::env::args;
+use std::fs::{read_to_string, File};
+use std::io::{self, BufRead, BufReader, Read};
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
-	let args: Vec<String> = args().collect();
+    let args: Vec<String> = args().collect();
 
-	match args.len() {
-		1 => run_prompt(),
-		2 => {
-			run_file(&args[1]);
-			unsafe {
-				if HAD_ERROR {
-					std::process::exit(65);
-				}
-			}
-		}
-		_ => {
-			println!("Usage: rustylox [script]");
-			std::process::exit(64);
-		}
-		
-	}
+    if args.len() > 2 {
+        println!("Usage: rustylox [script]");
+        std::process::exit(64);
+    } else if args.len() == 1 {
+        run_file(&args[1]).expect("Could not run file");
+        unsafe {
+            if HAD_ERROR {
+                std::process::exit(65);
+            }
+        }
+    } else {
+        run_prompt();
+    }
 }
-fn run_file(path: &str) {
-	run(&fs::read_to_string(path).unwrap());
+
+fn run_file(path: &String) -> io::Result<()> {
+    let buf = std::fs::read_to_string(path)?;
+    match run(buf) {
+        Ok(_) => {}
+        Err(m) => {
+            m.report("".to_string());
+            std::process::exit(65)
+        }
+    }
+    Ok(())
 }
 fn run_prompt() {
-	let mut line = String::new();
-	loop {
-		print!("> ");
-		line.clear();
-		std::io::stdout().flush().unwrap();
-		std::io::stdin().read_line(&mut line).unwrap();
-		if line.is_empty() {
-			break;
-		}
-		run(&line);
-		unsafe {
-			if HAD_ERROR {
-				// TODO: handle error
-				HAD_ERROR = false;
-			}
-		}
-	}
-	println!(""); // on end-of-input
-}
-fn run(src: &str) {
-	let mut scan = scanner::Scanner::new(src);
-	let tokens = scan.scan_tokens();
-	unsafe {if HAD_ERROR {
-		return;
-	}}
-	let mut parser = parser::Parser::new(tokens);
-	let parsed = parser.parse();
-	unsafe {if HAD_ERROR {
-		return;
-	}}
-	println!("{:#?}", Interpreter::interpret(&parsed[..]));
+    let stdin = io::stdin();
+    print!(">");
+    for line in stdin.lock().lines() {
+        if let Ok(line) = line {
+            if line.is_empty() {
+                break;
+            }
+            match run(line) {
+                Ok(_) => {}
+                Err(m) => {
+                    m.report("".to_string());
+                }
+            }
+        } else {
+            break;
+        }
+    }
 }
 
-fn error(token: &Token, message: &str) {
-	report(token.line, &format!("at {}", if token.token_type == TokenType::EOF {"end"} else {token.lexeme}), message);
-}
-fn error1(line: usize, message: &str) {
-	report(line, "", message);
+fn run(src: String) -> Result<(), LoxError> {
+    let mut scan = scanner::Scanner::new(src);
+    let tokens = scan.scan();
+
+    for token in tokens {
+        println!("{:?}", token)
+    }
+    Ok(())
+    /*unsafe {
+        if HAD_ERROR {
+            return;
+        }
+    }
+    let mut parser = parser::Parser::new(tokens);
+    let parsed = parser.parse();
+    unsafe {
+        if HAD_ERROR {
+            return;
+        }
+    }
+    println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
 }
 
-fn report(line: usize, loc: &str, message: &str) {
-	eprintln!("[line {line}] Error {loc}: {message}");
-	unsafe { HAD_ERROR = true; } // thread safety guaranteed by the lack of threads
-}
+/*fn error1(line: usize, message: &str) {
+    report(line, "", message);
+}*/

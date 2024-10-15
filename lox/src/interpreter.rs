@@ -1,32 +1,36 @@
-use crate::entities::{LiteralValue, LoxValue, Token, TokenType, RuntimeError};
+use crate::entities::{LiteralValue, LoxValue, RuntimeError, Token, TokenType};
 use crate::expr::{self, Expr};
 use crate::stmt::{self, Stmt};
 
 macro_rules! evaluate {
-	($e: expr) => {
-		<Interpreter as expr::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($e)
-	};
+    ($e: expr) => {
+        <Interpreter as expr::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($e)
+    };
 }
 pub(crate) use evaluate;
 macro_rules! execute {
-	($e: expr) => {
-		<Interpreter as stmt::Walker<Result<(), RuntimeError>>>::walk($e)
-	};
+    ($e: expr) => {
+        <Interpreter as stmt::Walker<Result<(), RuntimeError>>>::walk($e)
+    };
 }
 pub(crate) use execute;
 
 pub struct Interpreter;
 impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
-	fn walk(e: & Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
-		match e {
-			Expr::Assign{..} => {
-				todo!()
-			}
-			Expr::Binary{operator, left, right} => {
-				let left_val = evaluate!(left)?;
-				let right_val = evaluate!(right)?;
+    fn walk(e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
+        match e {
+            Expr::Assign { .. } => {
+                todo!()
+            }
+            Expr::Binary {
+                operator,
+                left,
+                right,
+            } => {
+                let left_val = evaluate!(left)?;
+                let right_val = evaluate!(right)?;
 
-				match operator.token_type {
+                match operator.token_type {
 					TokenType::MINUS => {
 						let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
 						Ok((a - b).into())
@@ -75,40 +79,38 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 					}
 					_ => panic!("Internal Error. Token {} was improperly scanned as a binary operator without a valid token_type", operator.lexeme)
 				}
-				//TODO: Case functions for all of the TokenTypes
-			}
-			Expr::Call{..} => {
-				todo!()
-			}
-			Expr::Get{..} => {
-				todo!()
-			}
-			Expr::Grouping{expression} => {
-				evaluate!(expression)
-			}
-			Expr::Literal{value} => {
-				Ok(match value {
-					LiteralValue::Bool(a) => (*a).into(),
-					LiteralValue::Num(a) => (*a).into(),
-					LiteralValue::Str(a) => LoxValue::String(a.to_owned()),
-					LiteralValue::Nil => LoxValue::Nil
-				})
-			}
-			Expr::Logical{..} => {
-				todo!()
-			}
-			Expr::Set{..} => {
-				todo!()
-			}
-			Expr::Super{..} => {
-				todo!()
-			}
-			Expr::This{..} => {
-				todo!()
-			}
-			Expr::Unary{operator, right} => {
-				let right_val = evaluate!(right)?;
-				match operator.token_type {
+                //TODO: Case functions for all of the TokenTypes
+            }
+            Expr::Call { .. } => {
+                todo!()
+            }
+            Expr::Get { .. } => {
+                todo!()
+            }
+            Expr::Grouping { expression } => {
+                evaluate!(expression)
+            }
+            Expr::Literal { value } => Ok(match value {
+                LiteralValue::Bool(a) => (*a).into(),
+                LiteralValue::Num(a) => (*a).into(),
+                LiteralValue::Str(a) => LoxValue::String(a.to_owned()),
+                LiteralValue::Nil => LoxValue::Nil,
+            }),
+            Expr::Logical { .. } => {
+                todo!()
+            }
+            Expr::Set { .. } => {
+                todo!()
+            }
+            Expr::Super { .. } => {
+                todo!()
+            }
+            Expr::This { .. } => {
+                todo!()
+            }
+            Expr::Unary { operator, right } => {
+                let right_val = evaluate!(right)?;
+                match operator.token_type {
 					TokenType::BANG => {
 						Ok((!Self::is_truthy(right_val)).into())
 					},
@@ -117,51 +119,64 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 					},
 					_ => panic!("Internal Error. Token {} was improperly scanned as a unary operator without a valid token_type", operator.lexeme)
 				}
-			}
-			Expr::Variable{..} => {
-				todo!()
-			}
-		}
-	}
+            }
+            Expr::Variable { .. } => {
+                todo!()
+            }
+        }
+    }
 }
 
 impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
-	fn walk(s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
-		match s {
-			Stmt::Expression{expression} => {
-				evaluate!(expression)?;
-				Ok(())
-			}
-			Stmt::Print {expression} => {
-				let val = evaluate!(expression)?;
-				println!("{}", val);
-				Ok(())
-			}
-			_ => todo!()
-		}
-	}
+    fn walk(s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
+        match s {
+            Stmt::Expression { expression } => {
+                evaluate!(expression)?;
+                Ok(())
+            }
+            Stmt::Print { expression } => {
+                let val = evaluate!(expression)?;
+                println!("{}", val);
+                Ok(())
+            }
+            _ => todo!(),
+        }
+    }
 }
 
 impl Interpreter {
-	pub fn interpret<'a>(stmts: &'a [Box<Stmt>]) -> Result<(), RuntimeError<'a>> {
-		for s in stmts {
-			execute!(s)?;
-		}
-		Ok(())
-	}
-	fn is_truthy(object: LoxValue) -> bool {
-		!matches!(object, LoxValue::Nil | LoxValue::Boolean(false))
-	}
-	fn unpack_operand_into_num<'a>(operand: &LoxValue, operator: &'a Token<'_>) -> Result<f64, RuntimeError<'a>> {
-		if let LoxValue::Number(x) = operand {
-			return Ok(*x);
-		}
-		Err(RuntimeError{token: operator, message: "Operand must be a number."})
-	}
-	fn unpack_operands_into_nums<'a>(left: &LoxValue, right: &LoxValue, operator: &'a Token<'_>) -> Result<(f64, f64), RuntimeError<'a>> {
-		if let (LoxValue::Number(a), LoxValue::Number(b)) = (left, right) {
-			return Ok((*a, *b));
-		}
-		Err(RuntimeError{token: operator, message: "Operands must be numbers."})
-	}
+    pub fn interpret<'a>(stmts: &'a [Box<Stmt>]) -> Result<(), RuntimeError<'a>> {
+        for s in stmts {
+            execute!(s)?;
+        }
+        Ok(())
+    }
+    fn is_truthy(object: LoxValue) -> bool {
+        !matches!(object, LoxValue::Nil | LoxValue::Boolean(false))
+    }
+    fn unpack_operand_into_num<'a>(
+        operand: &LoxValue,
+        operator: &'a Token<'_>,
+    ) -> Result<f64, RuntimeError<'a>> {
+        if let LoxValue::Number(x) = operand {
+            return Ok(*x);
+        }
+        Err(RuntimeError {
+            token: operator,
+            message: "Operand must be a number.",
+        })
+    }
+    fn unpack_operands_into_nums<'a>(
+        left: &LoxValue,
+        right: &LoxValue,
+        operator: &'a Token<'_>,
+    ) -> Result<(f64, f64), RuntimeError<'a>> {
+        if let (LoxValue::Number(a), LoxValue::Number(b)) = (left, right) {
+            return Ok((*a, *b));
+        }
+        Err(RuntimeError {
+            token: operator,
+            message: "Operands must be numbers.",
+        })
+    }
 }
