@@ -5,7 +5,7 @@ use crate::error::*;
 
 pub struct Scanner {
     //keywords: std::collections::HashMap<&'static str, TokenType>,
-    source: String,
+    source: Vec<char>,
     tokens: Vec<Token>,
     start: usize,
     current: usize,
@@ -14,7 +14,7 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(src: String) -> Scanner {
         Scanner {
-            source: src,
+            source: src.chars().collect(),
             tokens: Vec::new(),
             start: 0,
             current: 0,
@@ -22,17 +22,149 @@ impl Scanner {
         }
     }
     pub fn scan(&mut self) -> Result<&Vec<Token>, LoxError> {
+        let mut had_error: Option<LoxError> = None;
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan();
+            match self.scans() {
+                Ok(_) => {}
+                Err(e) => {
+                    e.report("".to_string());
+                    had_error = Some(e);
+                }
+            }
         }
         self.tokens.push(Token::eof(self.line));
-        Ok(&self.tokens)
+
+        if let Some(e) = had_error {
+            Err(e)
+        } else {
+            Ok(&self.tokens)
+        }
     }
-    pub fn is_at_end(&self) -> bool {
+    fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
-    pub fn scan(&self) {}
+    fn scans(&mut self) -> Result<(), LoxError> {
+        let c = self.advance();
+        match c {
+            '(' => self.add_token(TokenType::LEFT_PAREN),
+            ')' => self.add_token(TokenType::RIGHT_PAREN),
+            '{' => self.add_token(TokenType::LEFT_BRACE),
+            '}' => self.add_token(TokenType::RIGHT_BRACE),
+            ',' => self.add_token(TokenType::COMMA),
+            '.' => self.add_token(TokenType::DOT),
+            '-' => self.add_token(TokenType::MINUS),
+            '+' => self.add_token(TokenType::PLUS),
+            ';' => self.add_token(TokenType::SEMICOLON),
+            '*' => self.add_token(TokenType::STAR),
+            '!' => {
+                let tk = if self.equal_differentiator('=') {
+                    TokenType::BANG_EQUAL
+                } else {
+                    TokenType::BANG
+                };
+                self.add_token(tk);
+            }
+
+            '=' => {
+                let tk = if self.equal_differentiator('=') {
+                    TokenType::EQUAL_EQUAL
+                } else {
+                    TokenType::EQUAL
+                };
+                self.add_token(tk);
+            }
+            '<' => {
+                let tk = if self.equal_differentiator('=') {
+                    TokenType::LESS_EQUAL
+                } else {
+                    TokenType::LESS
+                };
+                self.add_token(tk);
+            }
+            '>' => {
+                let tk = if self.equal_differentiator('=') {
+                    TokenType::GREATER_EQUAL
+                } else {
+                    TokenType::GREATER
+                };
+                self.add_token(tk);
+            }
+            '/' => {
+                if self.equal_differentiator('/'){
+                    while let Some(ch) =self.peak() {
+                        if ch!= '\n' {
+                            self.advance();
+                        } 
+                    }
+                } else {
+                    self.add_token(TokenType::SLASH)
+                }
+            }
+            ' ' | '\r' | '\t' => {}
+            '\n' => {self.line += 1;
+            }
+             '"' => {
+                self.string();
+            }
+            _ => {
+                return Err(LoxError::error(
+                    self.line,
+                    "Unexpected character".to_string(),
+                ));
+            }
+        }
+        Ok(())
+    }
+    fn string(&mut self)->Result<(), LoxError> {
+        while let Some(ch) =self.peak() {
+            match ch {
+                '"' => {
+                    break;
+                }
+                '\n' => {
+                    self.line += 1;
+                }
+                _=> {}
+            }
+            self.advance();
+        }
+        if self.is_at_end() {
+            return Err(LoxError::error(self.line, "Unterminated String.".to_string(),));
+        }
+        self.advance();
+
+        let value: String = self.source[self.start + 1..self.current-1].iter().collect();
+        self.add_token_object(TokenType::STRING, Some(LiteralValue::Str(value)));
+        Ok(())
+    }
+    fn advance(&mut self) -> char {
+        let result = *self.source.get(self.current).unwrap();
+        self.current += 1;
+        result
+    }
+
+    fn add_token(&mut self, token_type: TokenType) {
+        self.add_token_object(token_type, None);
+    }
+
+    fn add_token_object(&mut self, token_type: TokenType, literal: Option<LiteralValue>) {
+        let lexeme: String = self.source[self.start..self.current].iter().collect();
+        self.tokens
+            .push(Token::new(token_type, lexeme, literal, self.line));
+    }
+    fn equal_differentiator(&mut self, expected: char) -> bool {
+        match self.source.get(self.current) {
+            Some(ch) if *ch == expected => {
+                self.current += 1;
+                true
+            }
+            _ => false,
+        }
+    }
+    fn peak(&self) -> Option<char> {
+       self.source.get(self.current).copied()
+    }
 }
 /*  assert!(
             source.is_ascii(),
@@ -151,14 +283,7 @@ impl Scanner {
             self.current += 1;
         }
     }
-    fn equal_differentiator(&mut self, longer: TokenType, shorter: TokenType) {
-        if self.current == self.source.len() || self.source[self.current] != b'=' {
-            self.add_token(shorter);
-        } else {
-            self.current += 1;
-            self.add_token(longer);
-        }
-    }
+
     fn advance(&mut self) -> u8 {
         self.current += 1;
         self.source[self.current - 1]

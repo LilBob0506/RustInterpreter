@@ -2,18 +2,18 @@
 
 mod entities;
 mod error;
-mod expr;
-mod interpreter;
-mod parser;
+//mod expr;
+//mod interpreter;
+//mod parser;
 mod scanner;
-mod stmt;
+//mod stmt;
 
 use entities::{Token, TokenType};
 use error::*;
-use interpreter::Interpreter;
+//use interpreter::Interpreter;
 use std::env::args;
 use std::fs::{read_to_string, File};
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, stdout, BufRead, BufReader, Read, Write};
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
@@ -22,7 +22,7 @@ pub fn main() {
     if args.len() > 2 {
         println!("Usage: rustylox [script]");
         std::process::exit(64);
-    } else if args.len() == 1 {
+    } else if args.len() == 2 {
         run_file(&args[1]).expect("Could not run file");
         unsafe {
             if HAD_ERROR {
@@ -38,8 +38,7 @@ fn run_file(path: &String) -> io::Result<()> {
     let buf = std::fs::read_to_string(path)?;
     match run(buf) {
         Ok(_) => {}
-        Err(m) => {
-            m.report("".to_string());
+        Err(_) => {
             std::process::exit(65)
         }
     }
@@ -48,6 +47,7 @@ fn run_file(path: &String) -> io::Result<()> {
 fn run_prompt() {
     let stdin = io::stdin();
     print!(">");
+    stdout().flush();
     for line in stdin.lock().lines() {
         if let Ok(line) = line {
             if line.is_empty() {
@@ -55,13 +55,13 @@ fn run_prompt() {
             }
             match run(line) {
                 Ok(_) => {}
-                Err(m) => {
-                    m.report("".to_string());
-                }
+                Err(_) => {}
             }
         } else {
             break;
         }
+        print!(">");
+        stdout().flush();
     }
 }
 
