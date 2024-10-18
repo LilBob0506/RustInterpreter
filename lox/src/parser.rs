@@ -5,11 +5,11 @@ use crate::stmt::Stmt;
 type ExprBox<'a> = Result<Box<Expr<'a>>, ParseError<'a>>;
 type StmtBox<'a> = Result<Box<Stmt<'a>>, ParseError<'a>>;
 pub struct Parser<'a> {
-    tokens: &'a Vec<Token<'a>>,
+    tokens: &'a Vec<Token>,
     index: usize,
 }
 impl<'a> Parser<'a> {
-    pub fn new(tokens: &'a Vec<Token<'a>>) -> Parser {
+    pub fn new(tokens: &'a Vec<Token>) -> Parser {
         Parser { tokens, index: 0 }
     }
     pub fn parse(&mut self) -> Vec<Box<Stmt>> {
@@ -203,7 +203,7 @@ impl<'a> Parser<'a> {
             }
         }
     }
-    fn try_consume(&mut self, token_type: TokenType) -> Option<&Token<'a>> {
+    fn try_consume(&mut self, token_type: TokenType) -> Option<&Token> {
         let tok = &self.tokens[self.index];
         if tok.token_type == token_type {
             self.index += 1;

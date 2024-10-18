@@ -10,7 +10,7 @@ pub enum Stmt<'a> {
         statements: &'a [Box<Stmt<'a>>],
     },
     Class {
-        name: &'a Token<'a>,
+        name: &'a Token,
         superclass: Expr<'a>,         // Always a Variable
         methods: &'a [Box<Stmt<'a>>], // Always Functions
     },
@@ -18,8 +18,8 @@ pub enum Stmt<'a> {
         expression: Expr<'a>,
     },
     Function {
-        name: &'a Token<'a>,
-        params: &'a [&'a Token<'a>],
+        name: &'a Token,
+        params: &'a [&'a Token],
         body: &'a [Box<Stmt<'a>>],
     },
     If {
@@ -34,7 +34,7 @@ pub enum Stmt<'a> {
         value: Expr<'a>,
     },
     Var {
-        name: &'a Token<'a>,
+        name: &'a Token,
         initializer: Option<Expr<'a>>,
     },
     While {

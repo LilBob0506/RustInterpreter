@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
 mod entities;
-mod generate_ast;
+//mod generate_ast;
 mod error;
-//mod expr;
+mod expr;
 mod interpreter;
-//mod parser;
+mod parser;
 mod scanner;
-//mod stmt;
-//mod environment;
+mod stmt;
+mod environment;
 
 use entities::{Token, TokenType};
 use error::*;

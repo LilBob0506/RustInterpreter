@@ -126,7 +126,10 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 				}
             }
             Expr::Variable { name } => {
-                environment.get(name)  
+                let value = {
+                   environment.get(name)  
+                };
+                value
             }
         }
     }
@@ -145,13 +148,13 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 Ok(())
             }
             Stmt::Var { name, initializer } => {
-                let value = if let Some(initializer) = stmt.initializer {
+                let value = if let Some(initializer) = stmt::initializer {
                     evaluate!(initializer);
                 } else {
-                    LoxValue::Nil
+                    ()
                 };
 
-                environment.define(stmt.name.as_string(), value);
+                environment.define(stmt::name.as_string(), value);
                 Ok(())
             }
             _ => todo!(),
@@ -176,7 +179,7 @@ impl Interpreter {
     }
     fn unpack_operand_into_num<'a>(
         operand: &LoxValue,
-        operator: &'a Token<'_>,
+        operator: &'a Token,
     ) -> Result<f64, RuntimeError<'a>> {
         if let LoxValue::Number(x) = operand {
             return Ok(*x);
@@ -189,7 +192,7 @@ impl Interpreter {
     fn unpack_operands_into_nums<'a>(
         left: &LoxValue,
         right: &LoxValue,
-        operator: &'a Token<'_>,
+        operator: &'a Token,
     ) -> Result<(f64, f64), RuntimeError<'a>> {
         if let (LoxValue::Number(a), LoxValue::Number(b)) = (left, right) {
             return Ok((*a, *b));

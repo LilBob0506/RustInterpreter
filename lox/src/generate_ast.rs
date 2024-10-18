@@ -1,6 +1,6 @@
-use std::{env::args, fs::write, io};
+use std::{env::args, fs::{write, File}, io};
 
-use crate::{entities::LoxValue, LoxError};
+use crate::{entities::{LiteralValue, LoxValue, Token}, LoxError};
 
 pub enum Expr {
     Binary(BinaryExpr),
@@ -86,13 +86,13 @@ fn define_ast(&output_dir: String, &base_name: String, &types: &[String]) -> io:
     write(file,  "use crate::error::*;\n")?;
     write(file,  "use crate::entities::*;\n")?;
 
-    for ttype in types {
+    for ttype in &mut types {
         let (base_class_name, args) = ttype.split_once(":").unwrap();
         let class_name = format!("{}{}", base_class_name.trim(), base_name);
         let args_split = args.split(",");
         let mut fields = Vec::new();
         for args in args_split {
-            fields.push(arg.trim().to_String());
+            fields.push(args.trim().to_string());
         }
         tree_types.push(TreeType {
             base_name,

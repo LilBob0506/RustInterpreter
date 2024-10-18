@@ -159,12 +159,14 @@ impl From<bool> for LoxValue {
 }
 
 //#[derive(Debug)]
-/*pub struct RuntimeError<'a> {
-    pub token: &'a Token<'a>,
+pub struct RuntimeError<'a> {
+    pub token: &'a Token,
     pub message: &'a str,
 }
-#[derive(Debug)]
+
+
+// #[derive(Debug)]
 pub struct ParseError<'a> {
-    pub token: &'a Token<'a>,
+    pub token: &'a Token,
     pub message: &'a str,
-}*/
+}
