@@ -1,6 +1,7 @@
 use crate::entities::{LiteralValue, LoxValue, RuntimeError, Token, TokenType};
 use crate::expr::{self, Expr};
 use crate::stmt::{self, Stmt};
+use crate::environment::*;
 
 macro_rules! evaluate {
     ($e: expr) => {
@@ -15,7 +16,11 @@ macro_rules! execute {
 }
 pub(crate) use execute;
 
-pub struct Interpreter;
+
+pub struct Interpreter {
+    environment: Environment,
+}
+
 impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
     fn walk(e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
         match e {
@@ -120,8 +125,8 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 					_ => panic!("Internal Error. Token {} was improperly scanned as a unary operator without a valid token_type", operator.lexeme)
 				}
             }
-            Expr::Variable { .. } => {
-                todo!()
+            Expr::Variable { name } => {
+                environment.get(name)  
             }
         }
     }
@@ -139,12 +144,27 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 println!("{}", val);
                 Ok(())
             }
+            Stmt::Var { name, initializer } => {
+                let value = if let Some(initializer) = stmt.initializer {
+                    evaluate!(initializer);
+                } else {
+                    LoxValue::Nil
+                };
+
+                environment.define(stmt.name.as_string(), value);
+                Ok(())
+            }
             _ => todo!(),
         }
     }
 }
 
 impl Interpreter {
+    pub fn new() -> Interpreter {
+        Interpreter {
+            environment: Environment::new()
+        }
+    }
     pub fn interpret<'a>(stmts: &'a [Box<Stmt>]) -> Result<(), RuntimeError<'a>> {
         for s in stmts {
             execute!(s)?;

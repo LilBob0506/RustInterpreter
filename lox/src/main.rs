@@ -3,10 +3,11 @@
 mod entities;
 mod error;
 //mod expr;
-//mod interpreter;
+mod interpreter;
 //mod parser;
 mod scanner;
 //mod stmt;
+//mod environment;
 
 use entities::{Token, TokenType};
 use error::*;
