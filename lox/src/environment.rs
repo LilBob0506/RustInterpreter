@@ -4,12 +4,14 @@ use crate::entities::*;
 use crate::error::*;
 
 pub struct Environment {
-    values: HashMap<String, LoxValue>
+    values: HashMap<String, LoxValue>,
 }
 
 impl Environment {
     pub fn new() -> Environment {
-        Environment { values: HashMap::new() }
+        Environment {
+            values: HashMap::new(),
+        }
     }
 
     pub fn define(&mut self, name: String, value: LoxValue) {
@@ -19,12 +21,11 @@ impl Environment {
     pub fn get(&self, name: &Token) -> Result<LoxValue, LoxError> {
         if let Some(object) = self.values.get(name.to_string()) {
             Ok(object);
-        }
-        else {
-            Err(LoxError::error(&usize, 
-                format!("Undefined variable '{}'.", )
+        } else {
+            Err(LoxError::error(
+                &usize,
+                format!("Undefined variable '{}'.",),
             ))
         }
     }
-    
 }

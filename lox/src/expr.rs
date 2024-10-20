@@ -41,7 +41,7 @@ pub enum Expr<'a> {
     },
     Super {
         keyword: &'a Token,
-        method: &'a Token
+        method: &'a Token,
     },
     This {
         keyword: &'a Token,

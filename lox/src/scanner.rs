@@ -1,10 +1,11 @@
+//use std::sync::Arc;
+
 // TODO: (possibly) implement UTF-8 support. currently breaks on non-ascii
 // TODO: (possibly) add /* */ multiline comment support (with nesting)
 use crate::entities::*;
 use crate::error::*;
-
+//use std::collections::HashMap;
 pub struct Scanner {
-    //keywords: std::collections::HashMap<&'static str, TokenType>,
     source: Vec<char>,
     tokens: Vec<Token>,
     start: usize,
@@ -91,21 +92,28 @@ impl Scanner {
                 self.add_token(tk);
             }
             '/' => {
-                if self.equal_differentiator('/'){
-                    while let Some(ch) =self.peak() {
-                        if ch!= '\n' {
+                if self.equal_differentiator('/') {
+                    while let Some(ch) = self.peak() {
+                        if ch != '\n' {
                             self.advance();
-                        } 
+                        }
                     }
                 } else {
                     self.add_token(TokenType::SLASH)
                 }
             }
             ' ' | '\r' | '\t' => {}
-            '\n' => {self.line += 1;
+            '\n' => {
+                self.line += 1;
             }
-             '"' => {
-                self.string();
+            '"' => {
+                self.string()?;
+            }
+            '0'..='9' => {
+                self.number();
+            }
+            _ if c.is_ascii_alphabetic() || c == '_' => {
+                self.identifier();
             }
             _ => {
                 return Err(LoxError::error(
@@ -116,8 +124,54 @@ impl Scanner {
         }
         Ok(())
     }
-    fn string(&mut self)->Result<(), LoxError> {
-        while let Some(ch) =self.peak() {
+    fn identifier(&mut self) {
+        while Scanner::is_alpha_numeric(self.peak()) {
+            self.advance();
+        }
+        let text: String = self.source[self.start..self.current].iter().collect();
+        if let Some(token_type) = Scanner::keywords(text.as_str()) {
+            self.add_token(token_type);
+        }
+        self.add_token(TokenType::IDENTIFIER);
+    }
+    fn number(&mut self) {
+        while Scanner::is_digit(self.peak()) {
+            self.advance();
+        }
+        if let Some(ch) = self.peak() {
+            if ch == '.' {
+                if Scanner::is_digit(self.peak_next()) {
+                    self.advance();
+
+                    while Scanner::is_digit(self.peak()) {
+                        self.advance();
+                    }
+                }
+            }
+        }
+        let value: String = self.source[self.start..self.current].iter().collect();
+        let num: f64 = value.parse().unwrap();
+        self.add_token_object(TokenType::NUMBER, Some(LiteralValue::Num(num)));
+    }
+    fn peak_next(&self) -> Option<char> {
+        self.source.get(self.current + 1).copied()
+    }
+    fn is_digit(ch: Option<char>) -> bool {
+        if let Some(ch) = ch {
+            ch.is_ascii_digit()
+        } else {
+            false
+        }
+    }
+    fn is_alpha_numeric(ch: Option<char>) -> bool {
+        if let Some(ch) = ch {
+            ch.is_ascii_alphabetic()
+        } else {
+            false
+        }
+    }
+    fn string(&mut self) -> Result<(), LoxError> {
+        while let Some(ch) = self.peak() {
             match ch {
                 '"' => {
                     break;
@@ -125,16 +179,21 @@ impl Scanner {
                 '\n' => {
                     self.line += 1;
                 }
-                _=> {}
+                _ => {}
             }
             self.advance();
         }
         if self.is_at_end() {
-            return Err(LoxError::error(self.line, "Unterminated String.".to_string(),));
+            return Err(LoxError::error(
+                self.line,
+                "Unterminated String.".to_string(),
+            ));
         }
         self.advance();
 
-        let value: String = self.source[self.start + 1..self.current-1].iter().collect();
+        let value: String = self.source[self.start + 1..self.current - 1]
+            .iter()
+            .collect();
         self.add_token_object(TokenType::STRING, Some(LiteralValue::Str(value)));
         Ok(())
     }
@@ -163,152 +222,27 @@ impl Scanner {
         }
     }
     fn peak(&self) -> Option<char> {
-       self.source.get(self.current).copied()
+        self.source.get(self.current).copied()
+    }
+    fn keywords(check: &str) -> Option<TokenType> {
+        match check {
+            "and" => Some(TokenType::AND),
+            "class" => Some(TokenType::CLASS),
+            "else" => Some(TokenType::ELSE),
+            "false" => Some(TokenType::FALSE),
+            "for" => Some(TokenType::FOR),
+            "fun" => Some(TokenType::FUN),
+            "if" => Some(TokenType::IF),
+            "nil" => Some(TokenType::NIL),
+            "or" => Some(TokenType::OR),
+            "print" => Some(TokenType::PRINT),
+            "return" => Some(TokenType::RETURN),
+            "super" => Some(TokenType::SUPER),
+            "this" => Some(TokenType::THIS),
+            "true" => Some(TokenType::TRUE),
+            "var" => Some(TokenType::VAR),
+
+            _ => None,
+        }
     }
 }
-/*  assert!(
-            source.is_ascii(),
-            "Source code contains non ASCII characters. Aborting."
-        );
-        let ret = Scanner {
-            keywords: std::collections::HashMap::from([
-                ("and", TokenType::AND),
-                ("class", TokenType::CLASS),
-                ("else", TokenType::ELSE),
-                ("false", TokenType::FALSE),
-                ("for", TokenType::FOR),
-                ("fun", TokenType::FUN),
-                ("if", TokenType::IF),
-                ("nil", TokenType::NIL),
-                ("or", TokenType::OR),
-                ("print", TokenType::PRINT),
-                ("return", TokenType::RETURN),
-                ("super", TokenType::SUPER),
-                ("this", TokenType::THIS),
-                ("true", TokenType::TRUE),
-                ("var", TokenType::VAR),
-                ("while", TokenType::WHILE),
-            ]),
-            source: source.as_bytes(),
-            tokens: Vec::new(),
-            start: 0,
-            current: 0,
-            line: 1,
-        };
-        ret
-    }
-    pub fn scan_tokens(&mut self) -> &Vec<Token> {
-        while self.current != self.source.len() {
-            // We are at the beginning of the next lexeme.
-            self.start = self.current;
-            self.scan_token();
-        }
-        self.tokens.push(Token {
-            token_type: TokenType::EOF,
-            lexeme: "",
-            line: self.line,
-            literal: None,
-        });
-        &self.tokens
-    }
-    fn scan_token(&mut self) {
-        let c = self.advance();
-        match c {
-            b'(' => self.add_token(TokenType::LEFT_PAREN),
-            b')' => self.add_token(TokenType::RIGHT_PAREN),
-            b'{' => self.add_token(TokenType::LEFT_BRACE),
-            b'}' => self.add_token(TokenType::RIGHT_BRACE),
-            b',' => self.add_token(TokenType::COMMA),
-            b'.' => self.add_token(TokenType::DOT),
-            b'-' => self.add_token(TokenType::MINUS),
-            b'+' => self.add_token(TokenType::PLUS),
-            b';' => self.add_token(TokenType::SEMICOLON),
-            b'*' => self.add_token(TokenType::STAR),
-            b'!' => self.equal_differentiator(TokenType::BANG_EQUAL, TokenType::BANG),
-            b'=' => self.equal_differentiator(TokenType::EQUAL_EQUAL, TokenType::EQUAL),
-            b'<' => self.equal_differentiator(TokenType::LESS_EQUAL, TokenType::LESS),
-            b'>' => self.equal_differentiator(TokenType::GREATER_EQUAL, TokenType::GREATER),
-            b'/' => {
-                if self.current != self.source.len() && self.source[self.current] == b'/' {
-                    self.consume_while(&|x| *x != b'\n');
-                } else {
-                    self.add_token(TokenType::SLASH);
-                }
-            }
-            b' ' | b'\r' | b'\t' => (),
-            b'\n' => self.line += 1,
-            // Here down could probably more cleanly be expressed with a regexset
-            b'"' => {
-                loop {
-                    if self.current == self.source.len() {
-                        crate::error1(self.line, "Unterminated string.");
-                    }
-                    match self.advance() {
-                        b'\n' => self.line += 1,
-                        b'"' => break,
-                        _ => (),
-                    };
-                }
-                self.start += 1;
-                self.current -= 1;
-                self.add_token(TokenType::STRING);
-                self.start -= 1;
-                self.current += 1;
-            }
-            c => {
-                if c.is_ascii_digit() {
-                    self.consume_while(&u8::is_ascii_digit);
-                    if self.current + 1 < self.source.len()
-                        && self.source[self.current] == b'.'
-                        && self.source[self.current + 1].is_ascii_digit()
-                    {
-                        self.advance();
-                        self.consume_while(&u8::is_ascii_digit);
-                    };
-                    self.add_token(TokenType::NUMBER);
-                } else if c.is_ascii_alphabetic() || c == b'_' {
-                    self.consume_while(&|x| x.is_ascii_alphanumeric() || *x == b'_');
-                    let keyword = self
-                        .keywords
-                        .get(&std::str::from_utf8(&self.source[self.start..self.current]).unwrap());
-                    self.add_token(*keyword.or(Some(&TokenType::IDENTIFIER)).unwrap());
-                } else {
-                    crate::error1(self.line, "Unexpected character.")
-                };
-            }
-        }
-    }
-    fn consume_while(&mut self, predicate: &dyn Fn(&u8) -> bool) {
-        while self.current != self.source.len() && predicate(&self.source[self.current]) {
-            self.current += 1;
-        }
-    }
-
-    fn advance(&mut self) -> u8 {
-        self.current += 1;
-        self.source[self.current - 1]
-    }
-    fn add_token(&mut self, token_type: TokenType) {
-        let lexeme;
-        unsafe {
-            lexeme = std::str::from_utf8_unchecked(&self.source[self.start..self.current]);
-            // already asserted to be valid ascii
-        }
-        self.tokens.push(Token {
-            token_type,
-            lexeme,
-            line: self.line,
-            literal: match token_type {
-                TokenType::STRING => Some(LiteralValue::Str(String::from(lexeme))),
-                TokenType::FALSE => Some(LiteralValue::Bool(false)),
-                TokenType::TRUE => Some(LiteralValue::Bool(true)),
-                TokenType::NIL => Some(LiteralValue::Nil),
-                TokenType::NUMBER => Some(LiteralValue::Num(lexeme.parse().unwrap_or_else(|_| {
-                    crate::error1(self.line, &format!("Invalid numeric constant: {}", lexeme));
-                    0.0
-                }))),
-                _ => None,
-            },
-        });
-    }
-}*/

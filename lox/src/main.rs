@@ -2,19 +2,19 @@
 
 mod entities;
 //mod generate_ast;
+//mod environment;
 mod error;
 mod expr;
-mod interpreter;
-mod parser;
+//mod interpreter;
+//mod parser;
 mod scanner;
-mod stmt;
-mod environment;
+//mod stmt;
 
-use entities::{Token, TokenType};
+//use entities::{Token, TokenType};
 use error::*;
 //use interpreter::Interpreter;
 use std::env::args;
-use std::fs::{read_to_string, File};
+//use std::fs::{read_to_string, File};
 use std::io::{self, stdout, BufRead, BufReader, Read, Write};
 
 static mut HAD_ERROR: bool = false;
@@ -36,34 +36,28 @@ pub fn main() {
     }
 }
 
-fn run_file(path: &String) -> io::Result<()> {
+fn run_file(path: &str) -> io::Result<()> {
     let buf = std::fs::read_to_string(path)?;
-    match run(buf) {
-        Ok(_) => {}
-        Err(_) => {
-            std::process::exit(65)
-        }
+    if run(buf).is_err() {
+        std::process::exit(65)
     }
     Ok(())
 }
 fn run_prompt() {
     let stdin = io::stdin();
     print!(">");
-    stdout().flush();
+    let _ = stdout().flush();
     for line in stdin.lock().lines() {
         if let Ok(line) = line {
             if line.is_empty() {
                 break;
             }
-            match run(line) {
-                Ok(_) => {}
-                Err(_) => {}
-            }
+            let _ = run(line);
         } else {
             break;
         }
         print!(">");
-        stdout().flush();
+        let _ = stdout().flush();
     }
 }
 

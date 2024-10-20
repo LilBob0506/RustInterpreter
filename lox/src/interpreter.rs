@@ -1,7 +1,7 @@
 use crate::entities::{LiteralValue, LoxValue, RuntimeError, Token, TokenType};
+use crate::environment::*;
 use crate::expr::{self, Expr};
 use crate::stmt::{self, Stmt};
-use crate::environment::*;
 
 macro_rules! evaluate {
     ($e: expr) => {
@@ -15,7 +15,6 @@ macro_rules! execute {
     };
 }
 pub(crate) use execute;
-
 
 pub struct Interpreter {
     environment: Environment,
@@ -126,9 +125,7 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 				}
             }
             Expr::Variable { name } => {
-                let value = {
-                   environment.get(name)  
-                };
+                let value = { environment.get(name) };
                 value
             }
         }
@@ -165,7 +162,7 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
-            environment: Environment::new()
+            environment: Environment::new(),
         }
     }
     pub fn interpret<'a>(stmts: &'a [Box<Stmt>]) -> Result<(), RuntimeError<'a>> {

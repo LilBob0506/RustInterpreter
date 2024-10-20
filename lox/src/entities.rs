@@ -164,7 +164,6 @@ pub struct RuntimeError<'a> {
     pub message: &'a str,
 }
 
-
 // #[derive(Debug)]
 pub struct ParseError<'a> {
     pub token: &'a Token,
