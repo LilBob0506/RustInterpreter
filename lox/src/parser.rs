@@ -17,7 +17,7 @@ impl<'a> Parser<'a> {
         while self.tokens[self.index].token_type != TokenType::EOF {
             match self.consume_declaration() {
                 Ok(s) => statements.push(s),
-                Err(e) => crate::error(e.token, e.message),
+                Err(e) => crate::error(e.token, e.message)
             }
         }
         statements

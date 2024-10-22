@@ -1,21 +1,18 @@
 #![allow(dead_code)]
 
 mod entities;
-mod generate_ast;
-//mod environment;
-mod error;
+// mod generate_ast;
+mod environment;
 mod expr;
-//mod interpreter;
-//mod parser;
+mod interpreter;
+mod parser;
 mod scanner;
-//mod stmt;
+mod stmt;
 
-//use entities::{Token, TokenType};
-use error::*;
-//use interpreter::Interpreter;
 use std::env::args;
-//use std::fs::{read_to_string, File};
-use std::io::{self, stdout, BufRead, BufReader, Read, Write};
+use std::io::{self, stdout, BufRead, Write};
+
+use entities::{LoxError, Token, TokenType};
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
@@ -70,7 +67,7 @@ fn run(src: String) -> Result<(), LoxError> {
     }
     Ok(())
     /*unsafe {
-        if HAD_ERROR {
+          if HAD_ERROR {
             return;
         }
     }
@@ -84,6 +81,14 @@ fn run(src: String) -> Result<(), LoxError> {
     println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
 }
 
-/*fn error1(line: usize, message: &str) {
-    report(line, "", message);
-}*/
+fn error(token: &Token, message: &str) {
+	report(token.line, &format!("at {}", if token.token_type == TokenType::EOF {"end"} else {&token.lexeme}), message);
+}
+fn error1(line: usize, message: &str) {
+	report(line, "", message);
+}
+
+fn report(line: usize, loc: &str, message: &str) {
+	eprintln!("[line {line}] Error {loc}: {message}");
+	unsafe { HAD_ERROR = true; } // thread safety guaranteed by the lack of threads
+}

@@ -3,7 +3,6 @@
 // TODO: (possibly) implement UTF-8 support. currently breaks on non-ascii
 // TODO: (possibly) add /* */ multiline comment support (with nesting)
 use crate::entities::*;
-use crate::error::*;
 //use std::collections::HashMap;
 pub struct Scanner {
     source: Vec<char>,

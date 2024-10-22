@@ -1,5 +1,6 @@
+
 use crate::entities::{LiteralValue, LoxValue, RuntimeError, Token, TokenType};
-use crate::environment::*;
+use crate::environment::{self, *};
 use crate::expr::{self, Expr};
 use crate::stmt::{self, Stmt};
 
@@ -125,8 +126,7 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 				}
             }
             Expr::Variable { name } => {
-                let value = { environment.get(name) };
-                value
+                todo!()
             }
         }
     }
@@ -135,6 +135,24 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
     fn walk(s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
         match s {
+            Stmt::Class { name, superclass, methods } => {
+                todo!()
+            }
+            Stmt::Block { statements } => {
+                todo!()
+            }
+            Stmt::Function { name, params, body } => {
+                todo!()
+            }
+            Stmt::If { condition, then_branch, else_branch } => {
+                todo!()
+            }
+            Stmt::While { body } => {
+                todo!()
+            }
+            Stmt::Return { value } => {
+                Ok(())
+            }
             Stmt::Expression { expression } => {
                 evaluate!(expression)?;
                 Ok(())
@@ -145,16 +163,16 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 Ok(())
             }
             Stmt::Var { name, initializer } => {
-                let value = if let Some(initializer) = stmt::initializer {
+              /*   let value = if let Some(initializer) = stmt::initializer {
                     evaluate!(initializer);
                 } else {
                     ()
                 };
 
                 environment.define(stmt::name.as_string(), value);
-                Ok(())
+                Ok(()) */
+                todo!()
             }
-            _ => todo!(),
         }
     }
 }
