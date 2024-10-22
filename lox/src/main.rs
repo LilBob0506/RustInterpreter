@@ -9,7 +9,6 @@ mod parser;
 mod scanner;
 mod stmt;
 
-//use entities::{Token, TokenType};
 //use interpreter::Interpreter;
 use std::env::args;
 //use std::fs::{read_to_string, File};
