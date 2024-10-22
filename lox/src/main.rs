@@ -1,18 +1,16 @@
 #![allow(dead_code)]
 
 mod entities;
-//mod generate_ast;
-//mod environment;
+// mod generate_ast;
+mod environment;
 mod expr;
-//mod interpreter;
+mod interpreter;
 mod parser;
 mod scanner;
 mod stmt;
 
-//use interpreter::Interpreter;
 use std::env::args;
-//use std::fs::{read_to_string, File};
-use std::io::{self, stdout, BufRead, BufReader, Read, Write};
+use std::io::{self, stdout, BufRead, Write};
 
 use entities::{LoxError, Token, TokenType};
 

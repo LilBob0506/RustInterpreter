@@ -59,27 +59,7 @@ impl UnaryExpr {
     }
 }
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = args().collect();
-
-    if args.len() != 2 {
-        eprint!("Usage: generate_ast <output directory>");
-        std::process::exit(64);
-    } 
-
-    let output_dir = args.get(1);
-
-    define_ast(&output_dir, &"expr".to_owned(), &vec![
-        "Binary   : Expr left, Token operator, Expr right",
-        "Grouping : Expr expression",
-        "Literal  : Object value",
-        "Unary    : Token operator, Expr right"
-    ]);
-
-    Ok(())
-}
-
-fn define_ast(&output_dir: String, &base_name: String, &types: &[String]) -> io::Result<()> {
+fn define_ast(output_dir: &String, base_name: &String, &types: &[String]) -> io::Result<()> {
     let path = format!("{output_dir}/{}", base_name.to_ascii_lowercase());
     let mut file = File::create(path)?;
 
@@ -106,3 +86,23 @@ fn define_ast(&output_dir: String, &base_name: String, &types: &[String]) -> io:
     Ok(())
 
 } 
+
+fn main() -> io::Result<()> {
+    let args: Vec<String> = args().collect();
+
+    if args.len() != 2 {
+        eprint!("Usage: generate_ast <output directory>");
+        std::process::exit(64);
+    } 
+
+    let output_dir = args.get(1);
+
+    define_ast(&output_dir, &"expr".to_owned(), &vec![
+        "Binary   : Expr left, Token operator, Expr right",
+        "Grouping : Expr expression",
+        "Literal  : Object value",
+        "Unary    : Token operator, Expr right"
+    ]);
+
+    Ok(())
+}
