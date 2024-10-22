@@ -169,3 +169,19 @@ pub struct ParseError<'a> {
     pub token: &'a Token,
     pub message: &'a str,
 }
+
+// #[derive(Debug)]
+pub struct LoxError {
+    line: usize,
+    message: String,
+}
+
+impl LoxError {
+    pub fn error(line: usize, message: String) -> LoxError {
+        LoxError { line, message }
+    }
+
+    pub fn report(&self, loc: String) {
+        eprintln!("[line {}] Error {loc}: {}", self.line, self.message);
+    }
+}
