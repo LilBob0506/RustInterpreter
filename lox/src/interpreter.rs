@@ -91,15 +91,7 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 todo!()
             }
             Expr::Get {object, name } => {
-                let object_val = evaluate!(object)?;
-                if let LoxValue::(ref instance) = object_val {
-                    Self.environment.get(name)
-                } else {
-                    Err(RuntimeError {
-                        token: name,
-                        message: "Only instances have properties.",
-                    })
-                }
+                todo!()
             }
             Expr::Grouping { expression } => {
                 evaluate!(expression)
@@ -124,17 +116,7 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 evaluate!(right)
             }
             Expr::Set {object, name, value } => {
-                let object_val = evaluate!(object)?;
-                if let LoxValue::Instance(ref mut instance) = object_val {
-                    let val = evaluate!(value)?;
-                    instance.set(name, val.clone())?;
-                    Ok(val)
-                } else {
-                    Err(RuntimeError {
-                        token: name,
-                        message: "Only instances have fields.",
-                    })
-                }
+                todo!()
             }
             Expr::Super {method, keyword } => {
                todo!()
@@ -176,8 +158,8 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
             Stmt::If { condition, then_branch, else_branch } => {
                 todo!()
             }
-            Stmt::While { body } => {
-                while Self::is_truthy(evaluate!()?) {
+            Stmt::While { condition, body } => {
+                while Self::is_truthy(evaluate!(condition)?) {
                     execute!(body)?;
                 }
                 Ok(())
