@@ -1,11 +1,11 @@
-use std::{env::args, fs::File, io::{self, Write}};
+use std::{env::args, fs::{write, File}, io};
 
 use crate::{entities::{LiteralValue, LoxValue, Token}, LoxError};
 
 pub enum Expr {
     Binary(BinaryExpr),
     Grouping(GroupingExpr),
-    Literal(LiteralExpr),
+    Literal(LiteralValue),
     Unary(UnaryExpr),
 }
 
@@ -29,35 +29,63 @@ pub struct UnaryExpr {
 }
 
 pub trait ExprVisitor {
-    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<(), LoxError>;
-    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<(), LoxError>;
-    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<(), LoxError>;
-    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<(), LoxError>;
+    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<T, LoxError>;
+    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<T, LoxError>;
+    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<T, LoxError>;
+    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<T, LoxError>;
 }
 
 impl BinaryExpr {
     fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
-        visitor.visit_binary_expr(self).map_err(|e| e.into())
+        visitor.visit_binary_expr(self)
     }
 }
 
 impl GroupingExpr {
     fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
-        visitor.visit_grouping_expr(self).map_err(|e| e.into())
+        visitor.visit_grouping_expr(self)
     }
 }
 
 impl LiteralExpr {
     fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
-        visitor.visit_literal_expr(self).map_err(|e| e.into())
+        visitor.visit_literal_expr(self)
     }
 }
 
 impl UnaryExpr {
     fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
-        visitor.visit_unary_expr(self).map_err(|e| e.into())
+        visitor.visit_unary_expr(self)
     }
 }
+
+fn define_ast(output_dir: &String, base_name: &String, &types: &[String]) -> io::Result<()> {
+    let path = format!("{output_dir}/{}", base_name.to_ascii_lowercase());
+    let mut file = File::create(path)?;
+
+    write(file,  "use crate::error::*;\n")?;
+    write(file,  "use crate::entities::*;\n")?;
+
+    for ttype in &mut types {
+        let (base_class_name, args) = ttype.split_once(":").unwrap();
+        let class_name = format!("{}{}", base_class_name.trim(), base_name);
+        let args_split = args.split(",");
+        let mut fields = Vec::new();
+        for args in args_split {
+            fields.push(args.trim().to_string());
+        }
+        tree_types.push(TreeType {
+            base_name,
+            class_name,
+            fields,
+        });
+    }
+
+    println!("{:?}", tree_types);
+
+    Ok(())
+
+} 
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = args().collect();
@@ -78,28 +106,3 @@ fn main() -> io::Result<()> {
 
     Ok(())
 }
-
-fn define_ast(&output_dir: String, &base_name: String, &types: &[String]) -> io::Result<()> {
-    let path = format!("{output_dir}/{}", base_name.to_ascii_lowercase());
-    let mut file = File::create(path)?;
-
-    writeln!(file, "use crate::error::*;")?;
-    writeln!(file, "use crate::entities::*;")?;
-
-    for ttype in types {
-        let (base_class_name, args) = ttype.split_once(":").unwrap();
-        let class_name = format!("{}{}", base_class_name.trim(), base_name);
-        let args_split = args.split(',');
-        let fields: Vec<String> = args_split.map(|arg| arg.trim().to_string()).collect();
-
-        // Here you might want to generate actual Rust structs or other AST code
-        writeln!(file, "pub struct {} {{", class_name)?;
-        for field in fields {
-            writeln!(file, "    pub {},", field)?;
-        }
-        writeln!(file, "}}")?;
-    }
-
-    Ok(())
-
-} 
