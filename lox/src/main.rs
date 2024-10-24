@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 mod entities;
-mod generate_ast;
+//mod generate_ast;
 mod environment;
 mod expr;
 mod interpreter;

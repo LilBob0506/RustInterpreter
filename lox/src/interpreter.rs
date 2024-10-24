@@ -176,8 +176,8 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
             Stmt::If { condition, then_branch, else_branch } => {
                 todo!()
             }
-            Stmt::While { body } => {
-                while Self::is_truthy(evaluate!()?) {
+            Stmt::While { condition, body } => {
+                while Self::is_truthy(evaluate!(condition)?) {
                     execute!(body)?;
                 }
                 Ok(())
