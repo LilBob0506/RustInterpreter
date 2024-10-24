@@ -28,7 +28,7 @@ pub struct UnaryExpr {
     right: Box<Expr>,
 }
 
-pub trait ExprVisitor {
+pub trait ExprVisitor<T> {
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<T, LoxError>;
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<T, LoxError>;
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<T, LoxError>;
@@ -36,25 +36,25 @@ pub trait ExprVisitor {
 }
 
 impl BinaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
+    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_binary_expr(self)
     }
 }
 
 impl GroupingExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
+    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_grouping_expr(self)
     }
 }
 
 impl LiteralExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
+    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_literal_expr(self)
     }
 }
 
 impl UnaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor) -> Result<T, LoxError> {
+    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_unary_expr(self)
     }
 }
@@ -87,7 +87,7 @@ fn define_ast(output_dir: &String, base_name: &String, &types: &[String]) -> io:
 
 } 
 
-fn main() -> io::Result<()> {
+/*fn main() -> io::Result<()> {
     let args: Vec<String> = args().collect();
 
     if args.len() != 2 {
@@ -105,4 +105,4 @@ fn main() -> io::Result<()> {
     ]);
 
     Ok(())
-}
+}*/
