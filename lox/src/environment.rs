@@ -13,6 +13,19 @@ impl Environment {
         }
     }
 
+    pub fn assign(&mut self, name: &Token, value: LoxValue) -> Result<(), RuntimeError> {
+        if self.values.contains_key(&name.lexeme) {
+            self.values.insert(name.lexeme.clone(), value);
+            Ok(())
+        } else {
+            let runtime_error = RuntimeError {
+                token: name,
+                message: &format!("Undefined variable '{}'.", name.lexeme),
+            };
+            Ok(())
+        }
+    }
+
     pub fn define(&mut self, name: String, value: LoxValue) {
         self.values.insert(name, value);
     }
@@ -27,4 +40,5 @@ impl Environment {
             ))
         }
     }
+
 }

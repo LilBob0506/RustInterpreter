@@ -1,5 +1,4 @@
-
-use crate::entities::{LiteralValue, LoxValue, RuntimeError, Token, TokenType};
+use crate::entities::{LiteralValue, LoxError, LoxValue, RuntimeError, Token, TokenType};
 use crate::environment::{self, *};
 use crate::expr::{self, Expr};
 use crate::stmt::{self, Stmt};
@@ -24,8 +23,10 @@ pub struct Interpreter {
 impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
     fn walk(e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
         match e {
-            Expr::Assign { .. } => {
-                todo!()
+            Expr::Assign {name  , value } => {
+                let val = evaluate!(value)?;
+                Self::environment.assign(name, val.clone())?;
+                Ok(val)
             }
             Expr::Binary {
                 operator,
@@ -86,10 +87,10 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 				}
                 //TODO: Case functions for all of the TokenTypes
             }
-            Expr::Call { .. } => {
+            Expr::Call {callee, paren, arguments } => {
                 todo!()
             }
-            Expr::Get { .. } => {
+            Expr::Get {object, name } => {
                 todo!()
             }
             Expr::Grouping { expression } => {
@@ -101,17 +102,27 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 LiteralValue::Str(a) => LoxValue::String(a.to_owned()),
                 LiteralValue::Nil => LoxValue::Nil,
             }),
-            Expr::Logical { .. } => {
+            Expr::Logical {left, operator, right} => {
+                let left_val = evaluate!(left)?;
+                if operator.token_type == TokenType::OR {
+                    if Self::is_truthy(left_val) {
+                        return Ok(left_val);
+                    }
+                } else {
+                    if !Self::is_truthy(left_val) {
+                        return Ok(left_val);
+                    }
+                }
+                evaluate!(right)
+            }
+            Expr::Set {object, name, value } => {
                 todo!()
             }
-            Expr::Set { .. } => {
-                todo!()
+            Expr::Super {method, keyword } => {
+               todo!()
             }
-            Expr::Super { .. } => {
-                todo!()
-            }
-            Expr::This { .. } => {
-                todo!()
+            Expr::This {keyword} => {
+                Self::environment.get(keyword)
             }
             Expr::Unary { operator, right } => {
                 let right_val = evaluate!(right)?;
@@ -126,7 +137,7 @@ impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 				}
             }
             Expr::Variable { name } => {
-                todo!()
+               Self::environment.get(name)
             }
         }
     }
@@ -147,8 +158,11 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
             Stmt::If { condition, then_branch, else_branch } => {
                 todo!()
             }
-            Stmt::While { body } => {
-                todo!()
+            Stmt::While { condition, body } => {
+                while Self::is_truthy(evaluate!(condition)?) {
+                    execute!(body)?;
+                }
+                Ok(())
             }
             Stmt::Return { value } => {
                 Ok(())
@@ -163,15 +177,14 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 Ok(())
             }
             Stmt::Var { name, initializer } => {
-              /*   let value = if let Some(initializer) = stmt::initializer {
+                let value = if let Some(initializer) = initializer {
                     evaluate!(initializer);
                 } else {
-                    ()
+                    drop(crate::interpreter::LoxValue::Nil);
                 };
 
-                environment.define(stmt::name.as_string(), value);
-                Ok(()) */
-                todo!()
+               // environment(&name.to_string(), value);
+                Ok(())
             }
         }
     }
@@ -216,5 +229,11 @@ impl Interpreter {
             token: operator,
             message: "Operands must be numbers.",
         })
+    }
+}
+
+impl Default for Interpreter {
+    fn default() -> Self {
+        Self::new()
     }
 }
