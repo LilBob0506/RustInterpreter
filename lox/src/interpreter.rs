@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entities::{LiteralValue, LoxError, LoxValue, RuntimeError, Token, TokenType};
 use crate::environment::{self, *};
 use crate::expr::{self, Expr};
