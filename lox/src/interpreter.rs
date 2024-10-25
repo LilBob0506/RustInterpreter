@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entities::{LiteralValue, LoxError, LoxValue, RuntimeError, Token, TokenType};
 use crate::environment::{self, *};
 use crate::expr2::{self, Expr};
@@ -176,8 +179,8 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
             Stmt::If { condition, then_branch, else_branch } => {
                 todo!()
             }
-            Stmt::While { body } => {
-                while Self::is_truthy(evaluate!()?) {
+            Stmt::While { condition, body } => {
+                while Self::is_truthy(evaluate!(condition)?) {
                     execute!(body)?;
                 }
                 Ok(())
