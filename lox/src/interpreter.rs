@@ -95,7 +95,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
             }
             Expr::Get {object, name } => {
                 let object_val = evaluate!(object)?;
-                if let LoxValue::(ref instance) = object_val {
+                if name.token_type == object_val {
                     Self.environment.get(name)
                 } else {
                     Err(RuntimeError {
