@@ -1,6 +1,6 @@
 use crate::entities::{LiteralValue, LoxError, LoxValue, RuntimeError, Token, TokenType};
 use crate::environment::{self, *};
-use crate::expr::{self, Expr};
+use crate::expr2::{self, Expr};
 use crate::stmt::{self, Stmt};
 
 macro_rules! evaluate {
@@ -20,7 +20,7 @@ pub struct Interpreter {
     environment: Environment,
 }
 
-impl<'a> expr::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
+impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
     fn walk(e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
         match e {
             Expr::Assign {name  , value } => {

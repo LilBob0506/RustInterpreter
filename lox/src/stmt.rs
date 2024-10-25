@@ -1,5 +1,5 @@
 use crate::entities::Token;
-use crate::expr::Expr;
+use crate::expr2::Expr;
 
 pub trait Walker<'a, T> {
     fn walk(s: &'a Stmt<'a>) -> T;

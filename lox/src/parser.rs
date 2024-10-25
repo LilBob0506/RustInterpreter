@@ -1,5 +1,5 @@
 use crate::entities::{ParseError, Token, TokenType};
-use crate::expr::Expr;
+use crate::expr2::Expr;
 use crate::stmt::Stmt;
 
 type ExprBox<'a> = Result<Box<Expr<'a>>, ParseError<'a>>;
