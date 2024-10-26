@@ -8,7 +8,7 @@ use crate::stmt::{self, Stmt};
 
 macro_rules! evaluate {
     ($e: expr) => {
-        <Interpreter as expr::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($e)
+        <Interpreter as expr2::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($e)
     };
 }
 pub(crate) use evaluate;
@@ -96,7 +96,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
             Expr::Get {object, name } => {
                 let object_val = evaluate!(object)?;
                 if name.token_type == object_val {
-                    Self.environment.get(name)
+                    self::environment::get(name)
                 } else {
                     Err(RuntimeError {
                         token: name,
@@ -203,8 +203,7 @@ impl<'a> stmt::Walker<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 } else {
                     drop(crate::interpreter::LoxValue::Nil);
                 };
-
-               // environment(&name.to_string(), value);
+                self::environment::get();
                 Ok(())
             }
         }
