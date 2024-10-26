@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 mod entities;
-mod expr;
 mod environment;
 mod expr2;
 mod interpreter;

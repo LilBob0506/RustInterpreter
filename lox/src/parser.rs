@@ -1,6 +1,6 @@
 use crate::entities::{ParseError, Token, TokenType};
 use crate::expr2::Expr;
-use crate::stmt::Stmt;
+use crate::stmt::{self, Stmt};
 
 type ExprBox<'a> = Result<Box<Expr<'a>>, ParseError<'a>>;
 type StmtBox<'a> = Result<Box<Stmt<'a>>, ParseError<'a>>;
@@ -71,6 +71,10 @@ impl<'a> Parser<'a> {
                 self.index += 1;
                 self.consume_print_stmt()
             }
+            TokenType::LEFT_BRACE => {
+                self.index += 1;
+                self.consume_print_stmt()
+            }
             _ => self.consume_expression_stmt(),
         }
     }
@@ -93,6 +97,20 @@ impl<'a> Parser<'a> {
             });
         }
         Ok(Box::new(Stmt::Expression { expression: *e }))
+    }
+    fn consume_block(&mut self) {
+        let mut statements = Vec::new();
+
+        while self.try_consume(TokenType::RIGHT_BRACE).is_none() {
+            statements.push(self.consume_declaration());
+        }
+
+        Err(ParseError {
+            token: &self.tokens[self.index],
+            message: "Expected ';' after expression.",
+        }); 
+
+        statements; 
     }
     fn consume_expression(&mut self) -> ExprBox<'a> {
         self.consume_equality()
