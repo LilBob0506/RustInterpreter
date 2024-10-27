@@ -1,4 +1,3 @@
-use crate::error::*;
 use crate::entities::*;
 
 pub enum Expr {
@@ -8,23 +7,34 @@ pub enum Expr {
     Unary(UnaryExpr),
 }
 
+impl Expr {
+    pub fn accept<T>(&self, expr_visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+        match self {
+            Expr::Binary(v) => v.accept(expr_visitor),
+            Expr::Grouping(v) => v.accept(expr_visitor),
+            Expr::Literal(v) => v.accept(expr_visitor),
+            Expr::Unary(v) => v.accept(expr_visitor),
+        }
+    }
+}
+
 pub struct BinaryExpr {
-    left: Box<Expr>,
-    operator: Token,
-    right: Box<Expr>,
+    publeft: Box<Expr>,
+    puboperator: Token,
+    pubright: Box<Expr>,
 }
 
 pub struct GroupingExpr {
-    expression: Box<Expr>,
+    pubexpression: Box<Expr>,
 }
 
 pub struct LiteralExpr {
-    value: Object,
+    pubvalue: Option<LiteralValue>,
 }
 
 pub struct UnaryExpr {
-    operator: Token,
-    right: Box<Expr>,
+    puboperator: Token,
+    pubright: Box<Expr>,
 }
 
 pub trait ExprVisitor<T> {
@@ -35,25 +45,25 @@ pub trait ExprVisitor<T> {
 }
 
 impl BinaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_binary_expr(self)
     }
 }
 
 impl GroupingExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_grouping_expr(self)
     }
 }
 
 impl LiteralExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_literal_expr(self)
     }
 }
 
 impl UnaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_unary_expr(self)
     }
 }

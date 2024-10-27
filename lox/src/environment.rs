@@ -26,7 +26,7 @@ impl Environment {
         if self.values.contains_key(&name.lexeme) {
             self.values.insert(name.lexeme.clone(), value);
             return Ok(());
-        } 
+        }
         if let Some(enclosing_env) = &mut self.enclosing {
             enclosing_env.assign(name, value);
             return Ok(());
@@ -35,7 +35,7 @@ impl Environment {
             token: name,
             message: &format!("Undefined variable '{}'.", name.lexeme),
         };
-        Ok(())  
+        Ok(())
     }
 
     pub fn define(&mut self, name: String, value: LoxValue) {
@@ -45,7 +45,7 @@ impl Environment {
     pub fn get(&self, name: &Token) -> Result<LoxValue, LoxError> {
         if let Some(_object) = self.values.get(&name.to_string()) {
             return Ok(crate::environment::LoxValue::Nil);
-        } 
+        }
         if let Some(enclosing_env) = &self.enclosing {
             return enclosing_env.get(name);
         }
@@ -53,7 +53,5 @@ impl Environment {
             name.line,
             format!("Undefined variable '{}'.", name),
         ))
-    
     }
-
 }

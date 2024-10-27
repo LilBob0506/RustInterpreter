@@ -4,11 +4,11 @@ mod entities;
 mod environment;
 mod expr2;
 //mod interpreter;
-//mod parser;
+mod parser;
 mod scanner;
 mod stmt;
 //mod generate_ast;
-//mod expr;
+mod expr;
 //mod build;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
@@ -83,13 +83,26 @@ fn run(src: String) -> Result<(), LoxError> {
 }
 
 fn error(token: &Token, message: &str) {
-	report(token.line, &format!("at {}", if token.token_type == TokenType::EOF {"end"} else {&token.lexeme}), message);
+    report(
+        token.line,
+        &format!(
+            "at {}",
+            if token.token_type == TokenType::EOF {
+                "end"
+            } else {
+                &token.lexeme
+            }
+        ),
+        message,
+    );
 }
 fn error1(line: usize, message: &str) {
-	report(line, "", message);
+    report(line, "", message);
 }
 
 fn report(line: usize, loc: &str, message: &str) {
-	eprintln!("[line {line}] Error {loc}: {message}");
-	unsafe { HAD_ERROR = true; } // thread safety guaranteed by the lack of threads
+    eprintln!("[line {line}] Error {loc}: {message}");
+    unsafe {
+        HAD_ERROR = true;
+    } // thread safety guaranteed by the lack of threads
 }

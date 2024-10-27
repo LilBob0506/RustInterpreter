@@ -98,19 +98,18 @@ impl<'a> Parser<'a> {
         }
         Ok(Box::new(Stmt::Expression { expression: *e }))
     }
-    fn consume_block(&mut self) {
+    fn consume_block(&mut self) -> Result<Vec<Box<Stmt<'a>>>, ParseError<'a>> {
         let mut statements = Vec::new();
-
+    
         while self.try_consume(TokenType::RIGHT_BRACE).is_none() {
-            statements.push(self.consume_declaration());
+            match self.consume_declaration() {
+                Ok(stmt) => statements.push(stmt),
+                Err(err) => return Err(err),
+            }
         }
-
-        Err(ParseError {
-            token: &self.tokens[self.index],
-            message: "Expected ';' after expression.",
-        }); 
-
-        statements; 
+    
+        // Return the collected statements as part of a successful block parse
+        Ok(statements)
     }
     fn consume_expression(&mut self) -> ExprBox<'a> {
         self.consume_equality()

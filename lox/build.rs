@@ -1,7 +1,7 @@
 use std::io;
-mod generate_A;
-use generate_A::*;
+mod generate_ast;
+use generate_ast::*;
 
 fn main() -> io::Result<()> {
-    generate_A(&"src".to_string())
+    generate_ast(&"src".to_string())
 }
