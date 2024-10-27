@@ -28,7 +28,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
         match e {
             Expr::Assign {name  , value } => {
                 let val = evaluate!(value)?;
-                Self::environment.assign(name, val.clone())?;
+                self.environment.assign(name, val.clone())?;
                 Ok(val)
             }
             Expr::Binary {

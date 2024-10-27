@@ -3,11 +3,13 @@
 mod entities;
 mod environment;
 mod expr2;
-mod interpreter;
-mod parser;
+//mod interpreter;
+//mod parser;
 mod scanner;
 mod stmt;
-
+//mod generate_ast;
+//mod expr;
+//mod build;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
 
