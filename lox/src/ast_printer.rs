@@ -1,37 +1,60 @@
 
-use crate::entities::*;
-use crate::expr::*;
+//use crate::entities::{LiteralValue, Token};
+use crate::expr2::*;
+
+pub trait Walker<'a, T> {
+    fn walk(e: &Expr<'a>) -> T;
+}
 
 pub struct AstPrinter;
-impl AstPrinter {
-    pub fn print(&self, expr: &Expr) -> Result<String, LoxError> {
-        expr.accept(self)
-    }
-    fn parenthesize(&self, name: &String, exprs: &[&Box<Expr>]) -> Result<String, LoxError> {
-        let mut builder = format!("({name}");
-        for expr in exprs {
-            builder = format!("{builder} {}", expr.accept(self)?);
+impl Walker<'_, String> for AstPrinter {
+    fn walk(e: &Expr) -> String {
+        match e {
+            Expr::Assign { value, name } => {
+                format!("(= {} {})", name.lexeme, Self::walk(value))
+            }
+            Expr::Binary {
+                operator,
+                left,
+                right,
+            } => {
+                format!(
+                    "({} {} {})",
+                    operator.lexeme,
+                    Self::walk(left),
+                    Self::walk(right)
+                )
+            }
+            Expr::Call { .. } => {
+                format!("")
+            }
+            Expr::Get { .. } => {
+                format!("")
+            }
+            Expr::Grouping { expression } => {
+                format!("({})", Self::walk(expression))
+            }
+            Expr::Literal { value } => {
+                format!("{:?}", value)
+            }
+            Expr::Logical { .. } => {
+                format!("")
+            }
+            Expr::Set { .. } => {
+                format!("")
+            }
+            Expr::Super { .. } => {
+                format!("")
+            }
+            Expr::This { .. } => {
+                format!("")
+            }
+            Expr::Unary { operator, right } => {
+                format!("({}({}))", operator.lexeme, Self::walk(right))
+            }
+            Expr::Variable { .. } => {
+                format!("")
+            }
         }
-        builder = format!("{builder})");
-        Ok(builder)
-    }
-    
-}
-impl ExprVisitor<String> for AstPrinter {
-    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<String, LoxError> {
-        self.parenthesize(&expr.operator.to_string(), &[&expr.left, &expr.right])
-    }
-    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<String, LoxError> {
-        self.parenthesize(&"group".to_string(), &[&expr.expression])
-    }
-    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<String, LoxError> {
-        if let Some(value) = &expr.value {
-            Ok(value.to_string())
-        } else {
-            Ok("nil".to_string())
-        }
-    }
-    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<String, LoxError> {
-        self.parenthesize(&expr.operator.to_string(), &[&expr.right])
     }
 }

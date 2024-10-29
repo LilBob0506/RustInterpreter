@@ -27,6 +27,7 @@ fn define_ast(output_dir: &String, base_name: &String, types: &[String]) -> io::
 
     //write!(file, "{}", "use crate::error::*;\n")?;
     write!(file, "{}", "use crate::entities::*;\n")?;
+    //write!(file, "{}", "use crate::object::*;\n")?;
 
     //Ok(());
     for ttype in types {

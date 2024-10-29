@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 mod entities;
-//mod environment;
+mod environment;
 mod expr2;
-//mod interpreter;
+mod interpreter;
 mod parser;
 mod scanner;
 mod stmt;
@@ -15,7 +15,7 @@ mod ast_printer;
 use ast_printer::*;
 //use parser::*;
 use entities::{LoxError, Token, TokenType};
-use stmt::Stmt;
+//use stmt::Stmt;
 //use expr2::AstPrinter;
 
 static mut HAD_ERROR: bool = false;

@@ -1,9 +1,9 @@
 use crate::entities::{LiteralValue, Token};
 
-pub trait Walker<'a, T> {
-    fn walk(e: &Expr<'a>) -> T;
-}
 
+pub trait Walker<'a, T> {
+    fn walk(&self, e: &Expr<'a>) -> T;
+}
 pub enum Expr<'a> {
     Assign {
         name: &'a Token,
@@ -58,7 +58,7 @@ pub enum Expr<'a> {
 /*
    For testing and example purposes:
 */
-pub struct AstPrinter;
+/*pub struct AstPrinter;
 impl Walker<'_, String> for AstPrinter {
     fn walk(e: &Expr) -> String {
         match e {
@@ -109,7 +109,7 @@ impl Walker<'_, String> for AstPrinter {
             }
         }
     }
-}
+}*/
 
 /*
 

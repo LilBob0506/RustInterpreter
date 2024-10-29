@@ -1,7 +1,7 @@
 use crate::entities::Token;
 use crate::expr2::Expr;
 
-pub trait Walker<'a, T> {
+pub trait Walky<'a, T> {
     fn walk(s: &'a Stmt<'a>) -> T;
 }
 
