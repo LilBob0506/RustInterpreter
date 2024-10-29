@@ -8,7 +8,7 @@ use crate::stmt::*;
 
 // Updated macros to pass `self` as an argument
 macro_rules! evaluate {
-    ($self: ident, $e: expr) => {
+    (mut $self: ident, $e: expr) => {
         <Interpreter as expr2::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)
     };
 }
@@ -35,17 +35,18 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
     fn walk(&mut self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
         match e {
             Expr::Assign { name, value } => {
-                let val = evaluate!(self, value)?; // Now `self` is available
+                let val = evaluate!(mut self, value)?; // Now `self` is available
                 self.environment.assign(name, val)?;
-                Ok(val)
+                let lox_value = evaluate!(mut self, value);
+                Ok(lox_value?)
             }
             Expr::Binary {
                 operator,
                 left,
                 right,
             } => {
-                let left_val = evaluate!(self, left)?;
-                let right_val = evaluate!(self, right)?;
+                let left_val = evaluate!(mut self, left)?;
+                let right_val = evaluate!(mut self, right)?;
 
                 match operator.token_type {
                     TokenType::MINUS => {
@@ -97,8 +98,8 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 todo!()
             }
             Expr::Get { object, name } => {
-                let object_val = evaluate!(self, object)?;
-                if name.token_type == object_val {
+                let object_val = evaluate!(mut self, object)?;
+                if let instance = object_val {
                     self.environment.get(name)
                 } else {
                     Err(RuntimeError {
@@ -108,7 +109,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 }
             }
             Expr::Grouping { expression } => {
-                evaluate!(self, expression)
+                evaluate!(mut self, expression)
             }
             Expr::Literal { value } => Ok(match value {
                 LiteralValue::Bool(a) => (*a).into(),
@@ -117,7 +118,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 LiteralValue::Nil => LoxValue::Nil,
             }),
             Expr::Logical { left, operator, right } => {
-                let left_val = evaluate!(self, left)?;
+                let left_val = evaluate!(mut self, left)?;
                 if operator.token_type == TokenType::OR {
                     if Self::is_truthy(left_val) {
                         return Ok(left_val);
@@ -127,13 +128,13 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                         return Ok(left_val);
                     }
                 }
-                evaluate!(self, right)
+                evaluate!(mut self, right)
             }
             Expr::Set { object, name, value } => {
-                let object_val = evaluate!(self, object)?;
-                if let LoxValue::Instance(ref mut instance) = object_val {
-                    let val = evaluate!(self, value)?;
-                    instance.set(name, val.clone())?;
+                let object_val = evaluate!(mut self, object)?;
+                if let instance = object_val {
+                    let val = evaluate!(mut self, value)?;
+                    
                     Ok(val)
                 } else {
                     Err(RuntimeError {
@@ -149,7 +150,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
                 self.environment.get(keyword)
             }
             Expr::Unary { operator, right } => {
-                let right_val = evaluate!(self, right)?;
+                let right_val = evaluate!(mut self, right)?;
                 match operator.token_type {
                     TokenType::BANG => Ok((!Self::is_truthy(right_val)).into()),
                     TokenType::MINUS => Ok((-Self::unpack_operand_into_num(&right_val, operator)?).into()),
@@ -180,8 +181,8 @@ impl<'a> stmt::Walky<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 todo!()
             }
             Stmt::While { condition, body } => {
-                while Self::is_truthy(evaluate!(self, condition)?) {
-                    execute!(self, body)?;
+                while Self::is_truthy(evaluate!(mut self, condition)?) {
+                    execute!(mut self, body)?;
                 }
                 Ok(())
             }
@@ -189,17 +190,17 @@ impl<'a> stmt::Walky<'a, Result<(), RuntimeError<'a>>> for Interpreter {
                 Ok(())
             }
             Stmt::Expression { expression } => {
-                evaluate!(self, expression)?;
+                evaluate!(mut self, expression)?;
                 Ok(())
             }
             Stmt::Print { expression } => {
-                let val = evaluate!(self, expression)?;
+                let val = evaluate!(mut self, expression)?;
                 println!("{}", val);
                 Ok(())
             }
             Stmt::Var { name, initializer } => {
                 let value = if let Some(initializer) = initializer {
-                    evaluate!(self, initializer)?
+                    evaluate!(mut self, initializer)?
                 } else {
                     LoxValue::Nil
                 };
@@ -218,9 +219,9 @@ impl Interpreter {
         }
     }
 
-    pub fn interpret<'a>(&self, stmts: &'a [Box<Stmt<'a>>]) -> Result<(), RuntimeError<'a>> {
+    pub fn interpret<'a>(&mut self, stmts: &'a [Box<Stmt<'a>>]) -> Result<(), RuntimeError<'a>> {
         for stmt in stmts {
-            execute!(self, stmt)?;
+            execute!(mut self, stmt)?;
         }
         Ok(())
     }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::entities::*;
+use crate::entities::{self, *};
 
 pub struct Environment {
     enclosing: Option<Box<Environment>>,
@@ -48,12 +48,14 @@ impl Environment {
         if let Some(_object) = self.values.get(&name.to_string()) {
             return Ok(crate::environment::LoxValue::Nil);
         }
-        if let Some(enclosing_env) = & mut self.enclosing {
+        else if let Some(enclosing_env) = & mut self.enclosing {
             return enclosing_env.get(name);
         }
-        Err(RuntimeError {
-            token: ,
-            message: "Undefined variable '{}'.",
-        })
+        let runtime_error = RuntimeError {
+            token: name,
+            message: "Operands must be numbers.",
+        };
+        let lox_value = Ok(entities::LoxValue::Nil);
+        lox_value
     }
 }
