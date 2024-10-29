@@ -2,7 +2,7 @@ use crate::entities::Token;
 use crate::expr2::Expr;
 
 pub trait Walky<'a, T> {
-    fn walk(s: &'a Stmt<'a>) -> T;
+    fn walk(&mut self, s: &'a Stmt<'a>) -> T;
 }
 
 pub enum Stmt<'a> {

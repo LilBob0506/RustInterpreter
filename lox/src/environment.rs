@@ -44,16 +44,16 @@ impl Environment {
         self.values.insert(name, value);
     }
 
-    pub fn get(&self, name: &Token) -> Result<LoxValue, LoxError> {
+    pub fn get(& mut self, name: &Token) -> Result<LoxValue, RuntimeError> {
         if let Some(_object) = self.values.get(&name.to_string()) {
             return Ok(crate::environment::LoxValue::Nil);
         }
-        if let Some(enclosing_env) = &self.enclosing {
+        if let Some(enclosing_env) = & mut self.enclosing {
             return enclosing_env.get(name);
         }
-        Err(LoxError::error(
-            name.line,
-            format!("Undefined variable '{}'.", name),
-        ))
+        Err(RuntimeError {
+            token: ,
+            message: "Undefined variable '{}'.",
+        })
     }
 }

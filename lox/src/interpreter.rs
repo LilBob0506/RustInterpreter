@@ -2,20 +2,21 @@ use crate::entities::*;
 use crate::environment::*;
 use crate::expr2;
 use crate::expr2::*;
+use crate::stmt;
 use crate::stmt::*;
 
 
 // Updated macros to pass `self` as an argument
 macro_rules! evaluate {
     ($self: ident, $e: expr) => {
-        $self.walk($e)
+        <Interpreter as expr2::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)
     };
 }
 pub(crate) use evaluate;
 
 macro_rules! execute {
-    ($self: ident, $e: expr) => {
-        $self.walk($e)
+    (mut $self: ident, $e: expr) => {
+        <Interpreter as stmt::Walky<Result<(), RuntimeError>>>::walk($self, $e)
     };
 }
 pub(crate) use execute;
@@ -31,11 +32,11 @@ pub trait Walker<'a, T> {
 
 // Interpreter now implements Walker with `&self` in `walk`
 impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
-    fn walk(&self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
+    fn walk(&mut self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
         match e {
             Expr::Assign { name, value } => {
                 let val = evaluate!(self, value)?; // Now `self` is available
-                self.environment.assign(name, val.clone())?;
+                self.environment.assign(name, val)?;
                 Ok(val)
             }
             Expr::Binary {
@@ -164,7 +165,7 @@ impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
 
 // Updated Walker trait for stmt with `&self`
 impl<'a> stmt::Walky<'a, Result<(), RuntimeError<'a>>> for Interpreter {
-    fn walk(&self, s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
+    fn walk(&mut self, s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
         match s {
             Stmt::Class { name, superclass, methods } => {
                 todo!()
