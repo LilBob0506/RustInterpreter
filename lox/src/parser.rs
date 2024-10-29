@@ -22,6 +22,7 @@ impl<'a> Parser<'a> {
         }
         statements
     }
+    
     fn consume_declaration(&mut self) -> StmtBox<'a> {
         if self.tokens[self.index].token_type == TokenType::VAR {
             self.index += 1;

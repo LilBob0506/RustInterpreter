@@ -19,22 +19,22 @@ impl Expr {
 }
 
 pub struct BinaryExpr {
-    publeft: Box<Expr>,
-    puboperator: Token,
-    pubright: Box<Expr>,
+    pub left: Box<Expr>,
+    pub operator: Token,
+    pub right: Box<Expr>,
 }
 
 pub struct GroupingExpr {
-    pubexpression: Box<Expr>,
+    pub expression: Box<Expr>,
 }
 
 pub struct LiteralExpr {
-    pubvalue: Option<LiteralValue>,
+    pub value: Option<LiteralValue>,
 }
 
 pub struct UnaryExpr {
-    puboperator: Token,
-    pubright: Box<Expr>,
+    pub operator: Token,
+    pub right: Box<Expr>,
 }
 
 pub trait ExprVisitor<T> {

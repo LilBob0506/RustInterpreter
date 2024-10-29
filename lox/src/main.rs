@@ -1,7 +1,6 @@
 #![allow(dead_code)]
-
 mod entities;
-mod environment;
+//mod environment;
 mod expr2;
 //mod interpreter;
 mod parser;
@@ -12,8 +11,12 @@ mod expr;
 //mod build;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
-
+mod ast_printer;
+use ast_printer::*;
+//use parser::*;
 use entities::{LoxError, Token, TokenType};
+use stmt::Stmt;
+//use expr2::AstPrinter;
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
@@ -59,28 +62,38 @@ fn run_prompt() {
     }
 }
 
-fn run(src: String) -> Result<(), LoxError> {
+pub fn run(src: String) -> Result<(), LoxError> {
     let mut scan = scanner::Scanner::new(src);
-    let tokens = scan.scan();
-
+    let tokens = scan.scan()?;
+    //let mut parser = parser::Parser::new(tokens);
+    
+    /*let mut parser = parser::Parser::new(&tokens);
+    let statements = parser.parse();
+    let printer = AstPrinter {};
+    for stmt in statements {
+        match printer.print_stmt(&stmt) {
+            Ok(output) => println!("AST Printer:\n{}", output),
+            Err(e) => println!("Error printing statement: {}", e),
+        }
+    }*/
     for token in tokens {
-        println!("{:?}", token)
+        println!("{:?}", token);
     }
     Ok(())
+}
     /*unsafe {
           if HAD_ERROR {
             return;
         }
     }
-    let mut parser = parser::Parser::new(tokens);
-    let parsed = parser.parse();
+    
+    
     unsafe {
         if HAD_ERROR {
             return;
         }
     }
     println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
-}
 
 fn error(token: &Token, message: &str) {
     report(

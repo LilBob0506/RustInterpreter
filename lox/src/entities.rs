@@ -62,7 +62,7 @@ pub enum LiteralValue {
 impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LiteralValue::Num(x) => write!(f, "(x)"),
+            LiteralValue::Num(x) => write!(f, "{x}"),
             LiteralValue::Str(x) => write!(f, "\"{x}\""),
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::Bool(true) => write!(f, "true"),

@@ -27,15 +27,17 @@ impl Environment {
             self.values.insert(name.lexeme.clone(), value);
             return Ok(());
         }
-        if let Some(enclosing_env) = &mut self.enclosing {
+        else if let Some(enclosing_env) = &mut self.enclosing {
             enclosing_env.assign(name, value);
             return Ok(());
-        }
-        let runtime_error = RuntimeError {
+        }else {
+            let runtime_error = RuntimeError {
             token: name,
             message: &format!("Undefined variable '{}'.", name.lexeme),
         };
         Ok(())
+        }
+        
     }
 
     pub fn define(&mut self, name: String, value: LoxValue) {
