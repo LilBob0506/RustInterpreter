@@ -30,7 +30,7 @@ impl Environment {
             enclosing_env.assign(name, value);
             return Ok(());
         } else {
-            let runtime_error = RuntimeError {
+            let _runtime_error = RuntimeError {
                 token: name,
                 message: &format!("Undefined variable '{}'.", name.lexeme),
             };
@@ -48,7 +48,7 @@ impl Environment {
         } else if let Some(enclosing_env) = &mut self.enclosing {
             return enclosing_env.get(name);
         }
-        let runtime_error = RuntimeError {
+        let _runtime_error = RuntimeError {
             token: name,
             message: "Operands must be numbers.",
         };

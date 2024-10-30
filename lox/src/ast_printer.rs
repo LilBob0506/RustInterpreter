@@ -32,4 +32,12 @@ impl ExprVisitor<String> for AstPrinter {
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<String, LoxError> {
         self.parenthesize(&expr.operator.as_string(), &[&expr.right])
     }
+    
+    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<String, LoxError> {
+        todo!()
+    }
+    
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<String, LoxError> {
+        todo!()
+    }
 }
