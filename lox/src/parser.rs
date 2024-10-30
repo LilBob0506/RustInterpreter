@@ -1,9 +1,6 @@
-
-use crate::expr;
 use crate::expr::*;
 use crate::entities::*;
 use crate::errors::*;
-use crate::expr::*;
 pub struct Parser<'a> {
     tokens: &'a Vec<Token>,
     current: usize,
@@ -38,7 +35,7 @@ impl<'a> Parser<'a> {
                 }));
            }
 
-           Err(LoxError::error(0, "Invalid assignment target".to_string())); 
+           Err(LoxError::error(0, "Invalid assignment target")); 
         }
 
         Ok(expr)
