@@ -1,4 +1,7 @@
 use core::fmt;
+use std::cmp::*;
+use std::ops::*;
+
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -52,12 +55,13 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LiteralValue {
     Num(f64),
     Str(String),
     Bool(bool),
     Nil,
+    ArithmeticError,
 }
 impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -67,6 +71,61 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::Bool(true) => write!(f, "true"),
             LiteralValue::Bool(false) => write!(f, "false"),
+            &LiteralValue::ArithmeticError => panic!("Should not be trying to print this"),
+        }
+    }
+}
+impl Sub for LiteralValue {
+    type Output = LiteralValue;
+    fn sub(self, other: Self) -> LiteralValue {
+        match (self, other) {
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left - right),
+            _ => LiteralValue::ArithmeticError,
+        }
+    }
+}
+impl Div for LiteralValue {
+    type Output = LiteralValue;
+    fn div(self, other: Self) -> LiteralValue {
+        match (self, other) {
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left / right),
+            _ => LiteralValue::ArithmeticError,
+        }
+    }
+}
+impl Mul for LiteralValue {
+    type Output = LiteralValue;
+    fn mul(self, other: Self) -> LiteralValue {
+        match (self, other) {
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left * right),
+            _ => LiteralValue::ArithmeticError,
+        }
+    }
+}
+impl Add for LiteralValue {
+    type Output = LiteralValue;
+    fn add(self, other: Self) -> LiteralValue {
+        match (self, other) {
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left + right),
+            (LiteralValue::Str(left), LiteralValue::Str(right)) => {
+                LiteralValue::Str(format!("{}{}", left, right))
+            }
+            _ => LiteralValue::ArithmeticError,
+        }
+    }
+}
+impl PartialOrd for LiteralValue {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (LiteralValue::Nil, o) => {
+                if o == &LiteralValue::Nil {
+                    Some(Ordering::Equal)
+                } else {
+                    None
+                }
+            }
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => left.partial_cmp(right),
+            _ => None,
         }
     }
 }
@@ -176,3 +235,54 @@ impl From<bool> for LoxValue {
 }
 
 //#[derive(Debug)]
+/*pub struct RuntimeError<'a> {
+    pub token: &'a Token,
+    pub message: &'a str,
+}
+
+// #[derive(Debug)]
+pub struct ParseError<'a> {
+    pub token: &'a Token,
+    pub message: &'a str,
+}
+
+// #[derive(Debug)]
+pub struct LoxError {
+    token: Option<Token>,
+    line: usize,
+    message: String,
+}
+
+impl LoxError {
+    pub fn error(line: usize, message: &str) -> LoxError {
+        let err = LoxError {
+            token: None,
+            line,
+            message: message.to_string(),
+        };
+        err.report("");
+        err
+    }
+    pub fn parse_error(token: &Token, message: &str) -> LoxError {
+        let err = LoxError {
+            token: Some(token.dup()),
+            line: token.line,
+            message : message.to_string(),
+        };
+        err.report("");
+        err
+    }
+
+    pub fn report(&self, loc: &str) {
+        if let Some(token) = &self.token {
+            if token.is(TokenType::EOF) {
+                eprintln!("{} at end {}", token.line, self.message);
+            } else {
+                eprintln!("{} at '{}' {}", token.line, token.as_string(), self.message);
+            }
+        } else {
+            eprintln!("[line {}] Error{}: {}", self.line, loc, self.message);
+        }
+    }
+}
+*/
