@@ -12,7 +12,8 @@ mod expr;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
 mod ast_printer;
-use ast_printer::*;
+use ast_printer::AstPrinter;
+//use ast_printer::*;
 //use parser::*;
 use entities::{LoxError, Token, TokenType};
 //use stmt::Stmt;
@@ -65,19 +66,15 @@ fn run_prompt() {
 pub fn run(src: String) -> Result<(), LoxError> {
     let mut scan = scanner::Scanner::new(src);
     let tokens = scan.scan()?;
-    //let mut parser = parser::Parser::new(tokens);
+    let mut parser = parser::Parser::new(tokens);
     
-    /*let mut parser = parser::Parser::new(&tokens);
-    let statements = parser.parse();
-    let printer = AstPrinter {};
-    for stmt in statements {
-        match printer.print_stmt(&stmt) {
-            Ok(output) => println!("AST Printer:\n{}", output),
-            Err(e) => println!("Error printing statement: {}", e),
+    
+    match parser.parse() {
+        None => {}
+        Some(expr) => {
+            let printer = AstPrinter {};
+            println!("AST Printer:\n{}", printer.print(&expr)?);
         }
-    }*/
-    for token in tokens {
-        println!("{:?}", token);
     }
     Ok(())
 }

@@ -1,22 +1,62 @@
+
 use crate::entities::*;
-use crate::environment::*;
-use crate::expr2;
-use crate::expr2::*;
-use crate::stmt;
-use crate::stmt::*;
-
-
+use crate::expr::*;
+//use crate::expr2::*;
+//use crate::stmt::*;
+//use crate::environment::*;
+pub struct Interpreter {}
+impl ExprVisitor<LiteralValue> for Interpreter {
+    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<LiteralValue, LoxError> {
+        Ok(expr.value.clone().unwrap())
+    }
+    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<LiteralValue, LoxError> {
+        Ok(self.evaluate(&expr.expression)?)
+    }
+    fn visit_binary_expr(&self, _expr: &BinaryExpr) -> Result<LiteralValue, LoxError> {
+        Ok(LiteralValue::Nil)
+    }
+    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<LiteralValue, LoxError> {
+        let right = self.evaluate(&expr.right)?;
+        match expr.operator.token_type() {
+            TokenType::MINUS => match right {
+                LiteralValue::Num(n) => return Ok(LiteralValue::Num(-n)),
+                _ => return Ok(LiteralValue::Nil),
+            },
+            TokenType::BANG => {
+                if self.is_truthy(&right) {
+                    Ok(LiteralValue::Bool(false))
+                } else {
+                    Ok(LiteralValue::Bool(true))
+                }
+            }
+            _ => Err(LoxError::error(
+                0,
+                "Unreachable accordin to Nystrom".to_string(),
+            )),
+        }
+    }
+}
+impl Interpreter {
+    fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, LoxError> {
+        expr.accept(self)
+    }
+    // Anything that is not Nil or False is true
+    fn is_truthy(&self, literal_value: &LiteralValue) -> bool {
+        !matches!(literal_value, LiteralValue::Nil | LiteralValue::Bool(false))
+    }
+}
 // Updated macros to pass `self` as an argument
+/* 
 macro_rules! evaluate {
     (mut $self: ident, $e: expr) => {
-        <Interpreter as expr2::Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)
+        <Interpreter as Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)
     };
 }
 pub(crate) use evaluate;
 
 macro_rules! execute {
     (mut $self: ident, $e: expr) => {
-        <Interpreter as stmt::Walky<Result<(), RuntimeError>>>::walk($self, $e)
+        <Interpreter as Walky<Result<(), RuntimeError>>>::walk($self, $e)
     };
 }
 pub(crate) use execute;
@@ -25,193 +65,6 @@ pub struct Interpreter {
     environment: Environment,
 }
 
-// Updated Walker trait to include `&self`
-pub trait Walker<'a, T> {
-    fn walk(&self, e: &Expr<'a>) -> T;
-}
-
-// Interpreter now implements Walker with `&self` in `walk`
-impl<'a> expr2::Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
-    fn walk(&mut self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
-        match e {
-            Expr::Assign { name, value } => {
-                let val = evaluate!(mut self, value)?; // Now `self` is available
-                self.environment.assign(name, val)?;
-                let lox_value = evaluate!(mut self, value);
-                Ok(lox_value?)
-            }
-            Expr::Binary {
-                operator,
-                left,
-                right,
-            } => {
-                let left_val = evaluate!(mut self, left)?;
-                let right_val = evaluate!(mut self, right)?;
-
-                match operator.token_type {
-                    TokenType::MINUS => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a - b).into())
-                    },
-                    TokenType::SLASH => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a / b).into())
-                    },
-                    TokenType::STAR => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a * b).into())
-                    },
-                    TokenType::PLUS => {
-                        let nums_res = Self::unpack_operands_into_nums(&left_val, &right_val, operator);
-                        match nums_res {
-                            Ok((a, b)) => Ok((a + b).into()),
-                            Err(_) => {
-                                if let (LoxValue::String(a), LoxValue::String(b)) = (left_val, right_val) {
-                                    return Ok(LoxValue::String(a + &b));
-                                }
-                                Err(RuntimeError{token: operator, message: "Operands must be two strings or two numbers."})
-                            }
-                        }
-                    },
-                    TokenType::GREATER => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a > b).into())
-                    },
-                    TokenType::LESS => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a < b).into())
-                    },
-                    TokenType::GREATER_EQUAL => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a >= b).into())
-                    },
-                    TokenType::LESS_EQUAL => {
-                        let (a, b) = Self::unpack_operands_into_nums(&left_val, &right_val, operator)?;
-                        Ok((a <= b).into())
-                    },
-                    TokenType::EQUAL_EQUAL => Ok((left_val == right_val).into()),
-                    TokenType::BANG_EQUAL => Ok((left_val != right_val).into()),
-                    _ => panic!("Internal Error. Token {} was improperly scanned as a binary operator without a valid token_type", operator.lexeme),
-                }
-            }
-            Expr::Call { callee, paren, arguments } => {
-                todo!()
-            }
-            Expr::Get { object, name } => {
-                let object_val = evaluate!(mut self, object)?;
-                if let instance = object_val {
-                    self.environment.get(name)
-                } else {
-                    Err(RuntimeError {
-                        token: name,
-                        message: "Only instances have properties.",
-                    })
-                }
-            }
-            Expr::Grouping { expression } => {
-                evaluate!(mut self, expression)
-            }
-            Expr::Literal { value } => Ok(match value {
-                LiteralValue::Bool(a) => (*a).into(),
-                LiteralValue::Num(a) => (*a).into(),
-                LiteralValue::Str(a) => LoxValue::String(a.to_owned()),
-                LiteralValue::Nil => LoxValue::Nil,
-            }),
-            Expr::Logical { left, operator, right } => {
-                let left_val = evaluate!(mut self, left)?;
-                if operator.token_type == TokenType::OR {
-                    if Self::is_truthy(left_val) {
-                        return Ok(left_val);
-                    }
-                } else {
-                    if !Self::is_truthy(left_val) {
-                        return Ok(left_val);
-                    }
-                }
-                evaluate!(mut self, right)
-            }
-            Expr::Set { object, name, value } => {
-                let object_val = evaluate!(mut self, object)?;
-                if let instance = object_val {
-                    let val = evaluate!(mut self, value)?;
-                    
-                    Ok(val)
-                } else {
-                    Err(RuntimeError {
-                        token: name,
-                        message: "Only instances have fields.",
-                    })
-                }
-            }
-            Expr::Super { method, keyword } => {
-                todo!()
-            }
-            Expr::This { keyword } => {
-                self.environment.get(keyword)
-            }
-            Expr::Unary { operator, right } => {
-                let right_val = evaluate!(mut self, right)?;
-                match operator.token_type {
-                    TokenType::BANG => Ok((!Self::is_truthy(right_val)).into()),
-                    TokenType::MINUS => Ok((-Self::unpack_operand_into_num(&right_val, operator)?).into()),
-                    _ => panic!("Internal Error. Token {} was improperly scanned as a unary operator without a valid token_type", operator.lexeme),
-                }
-            }
-            Expr::Variable { name } => {
-               self.environment.get(name)
-            }
-        }
-    }
-}
-
-// Updated Walker trait for stmt with `&self`
-impl<'a> stmt::Walky<'a, Result<(), RuntimeError<'a>>> for Interpreter {
-    fn walk(&mut self, s: &'a Stmt<'a>) -> Result<(), RuntimeError<'a>> {
-        match s {
-            Stmt::Class { name, superclass, methods } => {
-                todo!()
-            }
-            Stmt::Block { statements } => {
-                todo!()
-            }
-            Stmt::Function { name, params, body } => {
-                todo!()
-            }
-            Stmt::If { condition, then_branch, else_branch } => {
-                todo!()
-            }
-            Stmt::While { condition, body } => {
-                while Self::is_truthy(evaluate!(mut self, condition)?) {
-                    execute!(mut self, body)?;
-                }
-                Ok(())
-            }
-            Stmt::Return { value } => {
-                Ok(())
-            }
-            Stmt::Expression { expression } => {
-                evaluate!(mut self, expression)?;
-                Ok(())
-            }
-            Stmt::Print { expression } => {
-                let val = evaluate!(mut self, expression)?;
-                println!("{}", val);
-                Ok(())
-            }
-            Stmt::Var { name, initializer } => {
-                let value = if let Some(initializer) = initializer {
-                    evaluate!(mut self, initializer)?
-                } else {
-                    LoxValue::Nil
-                };
-                self.environment.define(name.lexeme.clone(), value);
-                Ok(())
-            }
-        }
-    }
-}
-
-// Remaining Interpreter methods
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
@@ -221,11 +74,12 @@ impl Interpreter {
 
     pub fn interpret<'a>(&mut self, stmts: &'a [Box<Stmt<'a>>]) -> Result<(), RuntimeError<'a>> {
         for stmt in stmts {
-            execute!(mut self, stmt)?;
+            execute!(mut self, stmt)?;  // Executes statements
         }
         Ok(())
     }
 
+    // Helper functions for evaluation and operations
     fn is_truthy(object: LoxValue) -> bool {
         !matches!(object, LoxValue::Nil | LoxValue::Boolean(false))
     }
@@ -258,8 +112,23 @@ impl Interpreter {
     }
 }
 
-impl Default for Interpreter {
-    fn default() -> Self {
-        Self::new()
+// Implementing trait Walker for Interpreter with Expr
+impl<'a> Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
+    fn walk(&mut self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
+        match e {
+            // Handling each variant for expressions in Expr
+            Expr::Binary { operator, left, right } => {
+                let left_val = evaluate!(mut self, left)?;
+                let right_val = evaluate!(mut self, right)?;
+
+                match operator.token_type {
+                    TokenType::PLUS => Ok((Self::unpack_operands_into_nums(&left_val, &right_val, operator)?).into()),
+                    _ => unimplemented!(),
+                }
+            },
+            Expr::Literal { value } => Ok(value.clone().into()),
+            _ => unimplemented!()
+        }
     }
 }
+*/

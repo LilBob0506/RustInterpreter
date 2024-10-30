@@ -52,7 +52,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LiteralValue {
     Num(f64),
     Str(String),
@@ -92,6 +92,23 @@ impl Token {
             line,
         }
     }
+    pub fn is(&self, ttype: TokenType) -> bool {
+        self.token_type == ttype
+    }
+    pub fn token_type(&self) -> TokenType {
+        self.token_type
+    }
+    pub fn as_string(&self) -> &String {
+        &self.lexeme
+    }
+    pub fn dup(&self) -> Token {
+        Token {
+            token_type: self.token_type,
+            lexeme: self.lexeme.to_string(),
+            literal: self.literal.clone(),
+            line: self.line,
+        }
+    }
     pub fn eof(line: usize) -> Token {
         Token {
             token_type: TokenType::EOF,
@@ -117,7 +134,7 @@ impl fmt::Display for Token {
         )
     }
 }
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug,Clone)]
 pub enum LoxValue {
     Nil,
     Boolean(bool),
@@ -172,16 +189,40 @@ pub struct ParseError<'a> {
 
 // #[derive(Debug)]
 pub struct LoxError {
+    token: Option<Token>,
     line: usize,
     message: String,
 }
 
 impl LoxError {
     pub fn error(line: usize, message: String) -> LoxError {
-        LoxError { line, message }
+        let err = LoxError {
+            token: None,
+            line,
+            message,
+        };
+        err.report("".to_string());
+        err
+    }
+    pub fn parse_error(token: &Token, message: String) -> LoxError {
+        let err = LoxError {
+            token: Some(token.dup()),
+            line: token.line,
+            message,
+        };
+        err.report("".to_string());
+        err
     }
 
     pub fn report(&self, loc: String) {
-        eprintln!("[line {}] Error {loc}: {}", self.line, self.message);
+        if let Some(token) = &self.token {
+            if token.is(TokenType::EOF) {
+                eprintln!("{} at end {}", token.line, self.message);
+            } else {
+                eprintln!("{} at '{}' {}", token.line, token.as_string(), self.message);
+            }
+        } else {
+            eprintln!("[line {}] Error{}: {}", self.line, loc, self.message);
+        }
     }
 }

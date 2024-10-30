@@ -1,4 +1,4 @@
-use crate::entities::Token;
+use crate::entities::*;
 use crate::expr2::Expr;
 
 pub trait Walky<'a, T> {
