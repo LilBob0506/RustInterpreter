@@ -3,6 +3,7 @@
 // TODO: (possibly) implement UTF-8 support. currently breaks on non-ascii
 // TODO: (possibly) add /* */ multiline comment support (with nesting)
 use crate::entities::*;
+use crate::errors::*;
 //use std::collections::HashMap;
 pub struct Scanner {
     source: Vec<char>,
@@ -28,7 +29,7 @@ impl Scanner {
             match self.scans() {
                 Ok(_) => {}
                 Err(e) => {
-                    e.report("".to_string());
+                    e.report("");
                     had_error = Some(e);
                 }
             }
@@ -115,10 +116,7 @@ impl Scanner {
                 self.identifier();
             }
             _ => {
-                return Err(LoxError::error(
-                    self.line,
-                    "Unexpected character".to_string(),
-                ));
+                return Err(LoxError::error(self.line, "Unexpected character"));
             }
         }
         Ok(())
@@ -183,10 +181,7 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            return Err(LoxError::error(
-                self.line,
-                "Unterminated String.".to_string(),
-            ));
+            return Err(LoxError::error(self.line, "Unterminated String."));
         }
         self.advance();
 

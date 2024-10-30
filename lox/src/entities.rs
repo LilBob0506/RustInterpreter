@@ -134,7 +134,7 @@ impl fmt::Display for Token {
         )
     }
 }
-#[derive(PartialEq, Debug,Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum LoxValue {
     Nil,
     Boolean(bool),
@@ -176,53 +176,3 @@ impl From<bool> for LoxValue {
 }
 
 //#[derive(Debug)]
-pub struct RuntimeError<'a> {
-    pub token: &'a Token,
-    pub message: &'a str,
-}
-
-// #[derive(Debug)]
-pub struct ParseError<'a> {
-    pub token: &'a Token,
-    pub message: &'a str,
-}
-
-// #[derive(Debug)]
-pub struct LoxError {
-    token: Option<Token>,
-    line: usize,
-    message: String,
-}
-
-impl LoxError {
-    pub fn error(line: usize, message: String) -> LoxError {
-        let err = LoxError {
-            token: None,
-            line,
-            message,
-        };
-        err.report("".to_string());
-        err
-    }
-    pub fn parse_error(token: &Token, message: String) -> LoxError {
-        let err = LoxError {
-            token: Some(token.dup()),
-            line: token.line,
-            message,
-        };
-        err.report("".to_string());
-        err
-    }
-
-    pub fn report(&self, loc: String) {
-        if let Some(token) = &self.token {
-            if token.is(TokenType::EOF) {
-                eprintln!("{} at end {}", token.line, self.message);
-            } else {
-                eprintln!("{} at '{}' {}", token.line, token.as_string(), self.message);
-            }
-        } else {
-            eprintln!("[line {}] Error{}: {}", self.line, loc, self.message);
-        }
-    }
-}

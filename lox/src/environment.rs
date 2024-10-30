@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::entities::{self, *};
-
+use crate::errors::*;
 pub struct Environment {
     enclosing: Option<Box<Environment>>,
     values: HashMap<String, LoxValue>,
@@ -26,29 +26,26 @@ impl Environment {
         if self.values.contains_key(&name.lexeme) {
             self.values.insert(name.lexeme.clone(), value);
             return Ok(());
-        }
-        else if let Some(enclosing_env) = &mut self.enclosing {
+        } else if let Some(enclosing_env) = &mut self.enclosing {
             enclosing_env.assign(name, value);
             return Ok(());
-        }else {
+        } else {
             let runtime_error = RuntimeError {
-            token: name,
-            message: &format!("Undefined variable '{}'.", name.lexeme),
-        };
-        Ok(())
+                token: name,
+                message: &format!("Undefined variable '{}'.", name.lexeme),
+            };
+            Ok(())
         }
-        
     }
 
     pub fn define(&mut self, name: String, value: LoxValue) {
         self.values.insert(name, value);
     }
 
-    pub fn get(& mut self, name: &Token) -> Result<LoxValue, RuntimeError> {
+    pub fn get(&mut self, name: &Token) -> Result<LoxValue, RuntimeError> {
         if let Some(_object) = self.values.get(&name.to_string()) {
             return Ok(crate::environment::LoxValue::Nil);
-        }
-        else if let Some(enclosing_env) = & mut self.enclosing {
+        } else if let Some(enclosing_env) = &mut self.enclosing {
             return enclosing_env.get(name);
         }
         let runtime_error = RuntimeError {

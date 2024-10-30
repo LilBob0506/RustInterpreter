@@ -2,7 +2,8 @@
 use crate::expr;
 use crate::expr::*;
 use crate::entities::*;
-
+use crate::errors::*;
+use crate::expr::*;
 pub struct Parser<'a> {
     tokens: &'a Vec<Token>,
     current: usize,
@@ -150,18 +151,15 @@ impl<'a> Parser<'a> {
 
         if self.is_match(&[TokenType::LEFT_PAREN]) {
             let expr = self.expression()?;
-            self.consume(
-                TokenType::RIGHT_PAREN,
-                "Expect ')' after expression".to_string(),
-            )?;
+            self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression")?;
             return Ok(Expr::Grouping(GroupingExpr {
                 expression: Box::new(expr),
             }));
         }
-        Err(LoxError::error(0, "Expect expression.".to_string()))
+        Err(LoxError::error(0, "Expect expression."))
     }
 
-    fn consume(&mut self, ttype: TokenType, message: String) -> Result<Token, LoxError> {
+    fn consume(&mut self, ttype: TokenType, message: &str) -> Result<Token, LoxError> {
         if self.check(ttype) {
             Ok(self.advance().dup())
         } else {
@@ -169,7 +167,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn error(token: &Token, message: String) -> LoxError {
+    fn error(token: &Token, message: &str) -> LoxError {
         LoxError::parse_error(token, message)
     }
 
@@ -256,7 +254,7 @@ impl<'a> Parser<'a> {
         }
         statements
     }
-    
+
     fn consume_declaration(&mut self) -> StmtBox<'a> {
         if self.tokens[self.index].token_type == TokenType::VAR {
             self.index += 1;
@@ -335,14 +333,14 @@ impl<'a> Parser<'a> {
     }
     fn consume_block(&mut self) -> Result<Vec<Box<Stmt<'a>>>, ParseError<'a>> {
         let mut statements = Vec::new();
-    
+
         while self.try_consume(TokenType::RIGHT_BRACE).is_none() {
             match self.consume_declaration() {
                 Ok(stmt) => statements.push(stmt),
                 Err(err) => return Err(err),
             }
         }
-    
+
         // Return the collected statements as part of a successful block parse
         Ok(statements)
     }

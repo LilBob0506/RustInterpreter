@@ -1,8 +1,7 @@
 use crate::entities::{LiteralValue, Token};
 
-
 pub trait Walker<'a, T> {
-    fn walk(& mut self, e: &Expr<'a>) -> T;
+    fn walk(&mut self, e: &Expr<'a>) -> T;
 }
 pub enum Expr<'a> {
     Assign {

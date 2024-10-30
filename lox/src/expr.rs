@@ -1,4 +1,5 @@
 use crate::entities::*;
+use crate::errors::*;
 
 pub enum Expr {
     Assign(AssignExpr),
