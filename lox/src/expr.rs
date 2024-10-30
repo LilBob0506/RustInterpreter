@@ -1,4 +1,5 @@
 use crate::entities::*;
+use crate::errors::*;
 
 pub enum Expr {
     Binary(BinaryExpr),
@@ -67,4 +68,3 @@ impl UnaryExpr {
         visitor.visit_unary_expr(self)
     }
 }
-

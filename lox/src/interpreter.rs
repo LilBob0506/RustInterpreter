@@ -1,5 +1,5 @@
-
 use crate::entities::*;
+use crate::errors::*;
 use crate::expr::*;
 //use crate::expr2::*;
 //use crate::stmt::*;
@@ -29,10 +29,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                     Ok(LiteralValue::Bool(true))
                 }
             }
-            _ => Err(LoxError::error(
-                0,
-                "Unreachable accordin to Nystrom".to_string(),
-            )),
+            _ => Err(LoxError::error(0, "Unreachable accordin to Nystrom")),
         }
     }
 }
@@ -46,7 +43,7 @@ impl Interpreter {
     }
 }
 // Updated macros to pass `self` as an argument
-/* 
+/*
 macro_rules! evaluate {
     (mut $self: ident, $e: expr) => {
         <Interpreter as Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)

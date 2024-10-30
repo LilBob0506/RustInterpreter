@@ -1,4 +1,5 @@
 use crate::entities::*;
+use crate::errors::*;
 use crate::expr::*;
 pub struct AstPrinter;
 impl AstPrinter {

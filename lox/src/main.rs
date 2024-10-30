@@ -1,23 +1,19 @@
 #![allow(dead_code)]
 mod entities;
 mod environment;
+mod expr;
 mod expr2;
 mod interpreter;
 mod parser;
 mod scanner;
 mod stmt;
-//mod generate_ast;
-mod expr;
-//mod build;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
 mod ast_printer;
 use ast_printer::AstPrinter;
-//use ast_printer::*;
-//use parser::*;
-use entities::{LoxError, Token, TokenType};
-//use stmt::Stmt;
-//use expr2::AstPrinter;
+use entities::{Token, TokenType};
+mod errors;
+use errors::LoxError;
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
@@ -67,8 +63,7 @@ pub fn run(src: String) -> Result<(), LoxError> {
     let mut scan = scanner::Scanner::new(src);
     let tokens = scan.scan()?;
     let mut parser = parser::Parser::new(tokens);
-    
-    
+
     match parser.parse() {
         None => {}
         Some(expr) => {
@@ -78,19 +73,19 @@ pub fn run(src: String) -> Result<(), LoxError> {
     }
     Ok(())
 }
-    /*unsafe {
-          if HAD_ERROR {
-            return;
-        }
+/*unsafe {
+      if HAD_ERROR {
+        return;
     }
-    
-    
-    unsafe {
-        if HAD_ERROR {
-            return;
-        }
+}
+
+
+unsafe {
+    if HAD_ERROR {
+        return;
     }
-    println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
+}
+println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
 
 fn error(token: &Token, message: &str) {
     report(
