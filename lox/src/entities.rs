@@ -1,6 +1,6 @@
 use core::fmt;
 use std::cmp::*;
-use std::ops::*;
+//use std::ops::*;
 
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
@@ -67,7 +67,7 @@ impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             LiteralValue::Num(x) => write!(f, "{x}"),
-            LiteralValue::Str(x) => write!(f, "\"{x}\""),
+            LiteralValue::Str(x) => write!(f, "{x}"),
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::Bool(true) => write!(f, "true"),
             LiteralValue::Bool(false) => write!(f, "false"),
@@ -75,60 +75,7 @@ impl fmt::Display for LiteralValue {
         }
     }
 }
-impl Sub for LiteralValue {
-    type Output = LiteralValue;
-    fn sub(self, other: Self) -> LiteralValue {
-        match (self, other) {
-            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left - right),
-            _ => LiteralValue::ArithmeticError,
-        }
-    }
-}
-impl Div for LiteralValue {
-    type Output = LiteralValue;
-    fn div(self, other: Self) -> LiteralValue {
-        match (self, other) {
-            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left / right),
-            _ => LiteralValue::ArithmeticError,
-        }
-    }
-}
-impl Mul for LiteralValue {
-    type Output = LiteralValue;
-    fn mul(self, other: Self) -> LiteralValue {
-        match (self, other) {
-            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left * right),
-            _ => LiteralValue::ArithmeticError,
-        }
-    }
-}
-impl Add for LiteralValue {
-    type Output = LiteralValue;
-    fn add(self, other: Self) -> LiteralValue {
-        match (self, other) {
-            (LiteralValue::Num(left), LiteralValue::Num(right)) => LiteralValue::Num(left + right),
-            (LiteralValue::Str(left), LiteralValue::Str(right)) => {
-                LiteralValue::Str(format!("{}{}", left, right))
-            }
-            _ => LiteralValue::ArithmeticError,
-        }
-    }
-}
-impl PartialOrd for LiteralValue {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self, other) {
-            (LiteralValue::Nil, o) => {
-                if o == &LiteralValue::Nil {
-                    Some(Ordering::Equal)
-                } else {
-                    None
-                }
-            }
-            (LiteralValue::Num(left), LiteralValue::Num(right)) => left.partial_cmp(right),
-            _ => None,
-        }
-    }
-}
+
 #[derive(Debug)]
 pub struct Token {
     pub token_type: TokenType,

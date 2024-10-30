@@ -1,9 +1,7 @@
 use crate::entities::*;
 use crate::errors::*;
 use crate::expr::*;
-//use crate::expr2::*;
-//use crate::stmt::*;
-//use crate::environment::*;
+
 pub struct Interpreter {}
 impl ExprVisitor<LiteralValue> for Interpreter {
     fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<LiteralValue, LoxError> {
@@ -22,21 +20,56 @@ impl ExprVisitor<LiteralValue> for Interpreter {
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<LiteralValue, LoxError> {
         let left = self.evaluate(&expr.left)?;
         let right = self.evaluate(&expr.right)?;
-        let result = match expr.operator.token_type() {
-            TokenType::MINUS => left - right,
-            TokenType::SLASH => left / right,
-            TokenType::STAR => left * right,
-            TokenType::PLUS => left + right,
-            TokenType::GREATER => LiteralValue::Bool(left > right),
-            TokenType::GREATER_EQUAL => LiteralValue::Bool(left >= right),
-            TokenType::LESS => LiteralValue::Bool(left < right),
-            TokenType::LESS_EQUAL => LiteralValue::Bool(left <= right),
-            TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
-            TokenType::EQUAL => LiteralValue::Bool(left == right),
-            _ => {
-                todo!("need to work on your code dude");
-            }
+        let op = expr.operator.token_type();
+
+        let result = match (left, right) {
+            (LiteralValue::Num(left), LiteralValue::Num(right)) => match op {
+                TokenType::MINUS => LiteralValue::Num(left - right),
+                TokenType::SLASH => LiteralValue::Num(left / right),
+                TokenType::STAR => LiteralValue::Num(left * right),
+                TokenType::PLUS => LiteralValue::Num(left + right),
+                TokenType::GREATER => LiteralValue::Bool(left > right),
+                TokenType::GREATER_EQUAL => LiteralValue::Bool(left >= right),
+                TokenType::LESS => LiteralValue::Bool(left < right),
+                TokenType::LESS_EQUAL => LiteralValue::Bool(left <= right),
+                TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
+                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                _ => {
+                    todo!("need to work on your code dude");
+                }
+            },
+            (LiteralValue::Num(left), LiteralValue::Str(right)) => match op {
+                TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
+                _ => LiteralValue::ArithmeticError,
+            },
+            (LiteralValue::Str(left), LiteralValue::Num(right)) => match op {
+                TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
+                _ => LiteralValue::ArithmeticError,
+            },
+            (LiteralValue::Str(left), LiteralValue::Str(right)) => match op {
+                TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
+                TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
+                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                _ => LiteralValue::ArithmeticError,
+            },
+            (LiteralValue::Bool(left), LiteralValue::Bool(right)) => match op {
+                TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
+                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                _ => LiteralValue::ArithmeticError,
+            },
+            (LiteralValue::Nil, LiteralValue::Nil) => match op {
+                TokenType::BANG_EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL => LiteralValue::Bool(true),
+                _ => LiteralValue::ArithmeticError,
+            },
+            (LiteralValue::Nil, _) => match op {
+                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::BANG_EQUAL => LiteralValue::Bool(true),
+                _ => LiteralValue::ArithmeticError,
+            },
+            _ => LiteralValue::ArithmeticError,
         };
+
         if result == LiteralValue::ArithmeticError {
             Err(LoxError::runtime_error(
                 &expr.operator,
@@ -73,12 +106,24 @@ impl Interpreter {
     fn is_truthy(&self, literal_value: &LiteralValue) -> bool {
         !matches!(literal_value, LiteralValue::Nil | LiteralValue::Bool(false))
     }
+    pub fn interpret(&self, expr: &Expr) -> bool {
+        match self.evaluate(&expr) {
+            Ok(v) => {
+                println!("{}", v);
+                true
+            }
+            Err(e) => {
+                e.report("");
+                false
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::*;
+    //use crate::entities::*;
     fn make_literal(o: LiteralValue) -> Box<Expr> {
         Box::new(Expr::Literal(LiteralExpr { value: Some(o) }))
     }
@@ -190,43 +235,42 @@ mod tests {
             right: make_literal(LiteralValue::Bool(true)),
         };
         let result = terp.visit_binary_expr(&binary_expr);
-        assert!(result.is_ok());
+        assert!(result.is_err());
+    }
+    fn run_comparison_test(tok: &Token, cmps: Vec<bool>) {
+        let nums = vec![14.0, 15.0, 16.0];
+        let terp = Interpreter {};
+
+        for (c, nums) in cmps.iter().zip(nums) {
+            let binary_expr = BinaryExpr {
+                left: make_literal(LiteralValue::Num(nums)),
+                operator: tok.dup(),
+                right: make_literal(LiteralValue::Num(15.0)),
+            };
+            let result = terp.visit_binary_expr(&binary_expr);
+            assert!(result.is_ok());
+            assert_eq!(
+                result.ok(),
+                Some(LiteralValue::Bool(*c)),
+                "Testing {} {} 15.0",
+                nums,
+                tok.as_string()
+            );
+        }
     }
     #[test]
-    fn test_greater_than_equal_to() {
-        let terp = Interpreter {};
-        let binary_expr = BinaryExpr {
-            left: make_literal(LiteralValue::Num(15.0)),
-            operator: Token::new(TokenType::GREATER_EQUAL, ">=".to_string(), None, 123),
-            right: make_literal(LiteralValue::Num(15.0)),
-        };
-        let result = terp.visit_binary_expr(&binary_expr);
-        assert!(result.is_ok());
-        assert_eq!(result.ok(), Some(LiteralValue::Bool(true)));
+    fn test_less_than() {
+        run_comparison_test(
+            &Token::new(TokenType::LESS, "<".to_string(), None, 123),
+            vec![true, false, false],
+        );
     }
     #[test]
-    fn test_greater_than_true() {
-        let terp = Interpreter {};
-        let binary_expr = BinaryExpr {
-            left: make_literal(LiteralValue::Num(15.0)),
-            operator: Token::new(TokenType::GREATER, ">".to_string(), None, 123),
-            right: make_literal(LiteralValue::Num(7.0)),
-        };
-        let result = terp.visit_binary_expr(&binary_expr);
-        assert!(result.is_ok());
-        assert_eq!(result.ok(), Some(LiteralValue::Bool(true)));
-    }
-    #[test]
-    fn test_greater_than_false() {
-        let terp = Interpreter {};
-        let binary_expr = BinaryExpr {
-            left: make_literal(LiteralValue::Num(15.0)),
-            operator: Token::new(TokenType::GREATER, ">".to_string(), None, 123),
-            right: make_literal(LiteralValue::Num(17.0)),
-        };
-        let result = terp.visit_binary_expr(&binary_expr);
-        assert!(result.is_ok());
-        assert_eq!(result.ok(), Some(LiteralValue::Bool(false)));
+    fn test_less_than_or_equal_to() {
+        run_comparison_test(
+            &Token::new(TokenType::LESS_EQUAL, "<=".to_string(), None, 123),
+            vec![true, true, false],
+        );
     }
     #[test]
     fn test_equals() {
@@ -289,90 +333,4 @@ mod tests {
         assert_eq!(result.ok(), Some(LiteralValue::Bool(true)));
     }
 }
-// Updated macros to pass `self` as an argument
-/*
-macro_rules! evaluate {
-    (mut $self: ident, $e: expr) => {
-        <Interpreter as Walker<Result<LoxValue, RuntimeError<'a>>>>::walk($self, $e)
-    };
-}
-pub(crate) use evaluate;
 
-macro_rules! execute {
-    (mut $self: ident, $e: expr) => {
-        <Interpreter as Walky<Result<(), RuntimeError>>>::walk($self, $e)
-    };
-}
-pub(crate) use execute;
-
-pub struct Interpreter {
-    environment: Environment,
-}
-
-impl Interpreter {
-    pub fn new() -> Interpreter {
-        Interpreter {
-            environment: Environment::new(),
-        }
-    }
-
-    pub fn interpret<'a>(&mut self, stmts: &'a [Box<Stmt<'a>>]) -> Result<(), RuntimeError<'a>> {
-        for stmt in stmts {
-            execute!(mut self, stmt)?;  // Executes statements
-        }
-        Ok(())
-    }
-
-    // Helper functions for evaluation and operations
-    fn is_truthy(object: LoxValue) -> bool {
-        !matches!(object, LoxValue::Nil | LoxValue::Boolean(false))
-    }
-
-    fn unpack_operand_into_num<'a>(
-        operand: &LoxValue,
-        operator: &'a Token,
-    ) -> Result<f64, RuntimeError<'a>> {
-        if let LoxValue::Number(x) = operand {
-            return Ok(*x);
-        }
-        Err(RuntimeError {
-            token: operator,
-            message: "Operand must be a number.",
-        })
-    }
-
-    fn unpack_operands_into_nums<'a>(
-        left: &LoxValue,
-        right: &LoxValue,
-        operator: &'a Token,
-    ) -> Result<(f64, f64), RuntimeError<'a>> {
-        if let (LoxValue::Number(a), LoxValue::Number(b)) = (left, right) {
-            return Ok((*a, *b));
-        }
-        Err(RuntimeError {
-            token: operator,
-            message: "Operands must be numbers.",
-        })
-    }
-}
-
-// Implementing trait Walker for Interpreter with Expr
-impl<'a> Walker<'a, Result<LoxValue, RuntimeError<'a>>> for Interpreter {
-    fn walk(&mut self, e: &Expr<'a>) -> Result<LoxValue, RuntimeError<'a>> {
-        match e {
-            // Handling each variant for expressions in Expr
-            Expr::Binary { operator, left, right } => {
-                let left_val = evaluate!(mut self, left)?;
-                let right_val = evaluate!(mut self, right)?;
-
-                match operator.token_type {
-                    TokenType::PLUS => Ok((Self::unpack_operands_into_nums(&left_val, &right_val, operator)?).into()),
-                    _ => unimplemented!(),
-                }
-            },
-            Expr::Literal { value } => Ok(value.clone().into()),
-            _ => unimplemented!()
-        }
-    }
-}
-*/

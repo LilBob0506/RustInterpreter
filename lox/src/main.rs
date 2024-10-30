@@ -1,57 +1,74 @@
 #![allow(dead_code)]
-mod entities;
-mod environment;
-mod expr;
-mod expr2;
-mod interpreter;
-mod parser;
-mod scanner;
-mod stmt;
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
+mod entities;
+
+mod environment;
+
+mod expr;
+//mod expr2;
+mod interpreter;
+use interpreter::*;
+
+mod parser;
+use parser::*;
+
+mod scanner;
+use scanner::*;
+//mod stmt;
+
 mod ast_printer;
-use ast_printer::AstPrinter;
-use entities::{Token, TokenType};
+
 mod errors;
-use errors::LoxError;
+use errors::*;
+
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
     let args: Vec<String> = args().collect();
-
-    if args.len() > 2 {
-        println!("Usage: rustylox [script]");
+    let lox = Lox::new();
+    match args.len() {
+     1 => lox.run_prompt(),
+    2 => lox.run_file(&args[1]).expect("Could not run file"),
+    _ => {
+        println!("Usage: lox-ast [script]");
         std::process::exit(64);
-    } else if args.len() == 2 {
-        run_file(&args[1]).expect("Could not run file");
-        unsafe {
-            if HAD_ERROR {
-                std::process::exit(65);
-            }
-        }
-    } else {
-        run_prompt();
+    }
     }
 }
 
-fn run_file(path: &str) -> io::Result<()> {
+
+struct Lox {
+    interpreter: Interpreter,
+}
+impl Lox {
+    pub fn new() -> Lox {
+        Lox {
+            interpreter: Interpreter {},
+        }
+    }
+        
+
+pub fn run_file(&self, path: &str) -> io::Result<()> {
     let buf = std::fs::read_to_string(path)?;
-    if run(buf).is_err() {
-        std::process::exit(65)
+    if self.run(buf).is_err() {
+        // Ignore: error was already reported
+        std::process::exit(65);
     }
     Ok(())
 }
-fn run_prompt() {
-    let stdin = io::stdin();
-    print!(">");
-    let _ = stdout().flush();
-    for line in stdin.lock().lines() {
-        if let Ok(line) = line {
-            if line.is_empty() {
-                break;
-            }
-            let _ = run(line);
-        } else {
+
+    pub fn run_prompt(&self) {
+        let stdin = io::stdin();
+        print!("> ");
+        let _ = stdout().flush();
+        for line in stdin.lock().lines() {
+            if let Ok(line) = line {
+                if line.is_empty() {
+                    break;
+                }
+                let _ = self.run(line);
+            } else {
             break;
         }
         print!(">");
@@ -59,55 +76,19 @@ fn run_prompt() {
     }
 }
 
-pub fn run(src: String) -> Result<(), LoxError> {
-    let mut scan = scanner::Scanner::new(src);
-    let tokens = scan.scan()?;
-    let mut parser = parser::Parser::new(tokens);
+fn run(&self, source: String) -> Result<(), LoxError> {
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan()?;
+    let mut parser = Parser::new(tokens);
 
     match parser.parse() {
         None => {}
         Some(expr) => {
-            let printer = AstPrinter {};
-            println!("AST Printer:\n{}", printer.print(&expr)?);
-        }
-    }
-    Ok(())
-}
-/*unsafe {
-      if HAD_ERROR {
-        return;
-    }
-}
-
-
-unsafe {
-    if HAD_ERROR {
-        return;
-    }
-}
-println!("{:#?}", Interpreter::interpret(&parsed[..]));*/
-
-fn error(token: &Token, message: &str) {
-    report(
-        token.line,
-        &format!(
-            "at {}",
-            if token.token_type == TokenType::EOF {
-                "end"
-            } else {
-                &token.lexeme
+            self.interpreter.interpret(&expr);
+                // let printer = AstPrinter {};
+                // println!("AST Printer:\n{}", printer.print(&expr)?);
             }
-        ),
-        message,
-    );
-}
-fn error1(line: usize, message: &str) {
-    report(line, "", message);
-}
-
-fn report(line: usize, loc: &str, message: &str) {
-    eprintln!("[line {line}] Error {loc}: {message}");
-    unsafe {
-        HAD_ERROR = true;
-    } // thread safety guaranteed by the lack of threads
+        }
+        Ok(())
+    }
 }
