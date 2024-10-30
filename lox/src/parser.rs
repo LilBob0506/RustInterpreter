@@ -1,4 +1,5 @@
 
+use crate::expr;
 use crate::expr::*;
 use crate::entities::*;
 
@@ -19,7 +20,27 @@ impl<'a> Parser<'a> {
         }
     }
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expr, LoxError> {
+        let expr = self.equality()?;
+
+        if self.is_match(&[TokenType::EQUAL]) {
+           let equals = self.previous().dup();
+           let value = self.assignment()?;
+
+           if let Expr::Variable(expr) = expr {
+                return Ok(Expr::Assign(AssignExpr {
+                    name: expr.name.dup(),
+                    value: Box::new(value)
+                }));
+           }
+
+           Err(LoxError::error(0, "Invalid assignment target".to_string())); 
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {

@@ -1,4 +1,3 @@
-
 use crate::entities::*;
 use crate::expr::*;
 //use crate::expr2::*;
@@ -6,6 +5,13 @@ use crate::expr::*;
 //use crate::environment::*;
 pub struct Interpreter {}
 impl ExprVisitor<LiteralValue> for Interpreter {
+    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<LiteralValue, LoxError> {
+        let value = self.evaluate(&expr.value);
+        self.environment
+            .borrow_mut()
+            .assign(&expr.name, value)?;
+        Ok(value)
+    }
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<LiteralValue, LoxError> {
         Ok(expr.value.clone().unwrap())
     }
@@ -35,7 +41,11 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             )),
         }
     }
+    fn visit_variable_expr(&self, _expr: &VariableExpr) -> Result<LiteralValue, LoxError> {
+        todo!()
+    }
 }
+
 impl Interpreter {
     fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, LoxError> {
         expr.accept(self)

@@ -11,10 +11,12 @@ pub fn generate_ast(output_dir: &String) -> io::Result<()> {
         output_dir,
         &"Expr".to_string(),
         &vec![
+            "Assign   : Token name, Rc<Expr> value".to_string(),
             "Binary   : Box<Expr> left, Token operator, Box<Expr> right".to_string(),
             "Grouping : Box<Expr> expression".to_string(),
             "Literal  : Option<LiteralValue> value".to_string(),
             "Unary    : Token operator, Box<Expr> right".to_string(),
+            "Variable : Token name".to_string(),
         ],
     )?;
 
