@@ -1,6 +1,7 @@
 use crate::expr::*;
 use crate::entities::*;
 use crate::errors::*;
+use crate::stmt::*;
 pub struct Parser<'a> {
     tokens: &'a Vec<Token>,
     current: usize,
@@ -11,35 +12,34 @@ impl<'a> Parser<'a> {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Option<Expr> {
-        match self.expression() {
-            Ok(expr) => Some(expr),
-            Err(_) => None,
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.statement()?)
         }
+        Ok(statements)
     }
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.assignment()
+        self.equality()
     }
 
-    fn assignment(&mut self) -> Result<Expr, LoxError> {
-        let expr = self.equality()?;
-
-        if self.is_match(&[TokenType::EQUAL]) {
-           let equals = self.previous().dup();
-           let value = self.assignment()?;
-
-           if let Expr::Variable(expr) = expr {
-                return Ok(Expr::Assign(AssignExpr {
-                    name: expr.name.dup(),
-                    value: Box::new(value)
-                }));
-           }
-
-           Err(LoxError::error(0, "Invalid assignment target")); 
+    fn statement(&mut self) -> Result<Stmt, LoxError> {
+        if self.is_match(&[TokenType::PRINT]) {
+            return self.print_statement();
         }
-
-        Ok(expr)
+        self.expression_statement()
     }
+    fn print_statement(&mut self) -> Result<Stmt, LoxError> {
+        let value = self.expression()?;
+        self.consume(TokenType::SEMICOLON, "Expect ';' after value.")?;
+        Ok(Stmt::Print(PrintStmt { expression: value }))
+    }
+    fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
+        let expr = self.expression()?;
+        self.consume(TokenType::SEMICOLON, "Expect ';' after value.")?;
+        Ok(Stmt::Expression(ExpressionStmt { expression: expr }))
+    }
+
 
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;
@@ -131,7 +131,7 @@ impl<'a> Parser<'a> {
         }
         if self.is_match(&[TokenType::TRUE]) {
             return Ok(Expr::Literal(LiteralExpr {
-                value: Some(LiteralValue::Bool(false)),
+                value: Some(LiteralValue::Bool(true)),
             }));
         }
         if self.is_match(&[TokenType::NIL]) {

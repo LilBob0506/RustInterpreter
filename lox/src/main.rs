@@ -15,9 +15,11 @@ use parser::*;
 
 mod scanner;
 use scanner::*;
-//mod stmt;
 
-mod ast_printer;
+mod stmt;
+use stmt::*;
+
+//mod ast_printer;
 
 mod errors;
 use errors::*;
@@ -80,15 +82,13 @@ fn run(&self, source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan()?;
     let mut parser = Parser::new(tokens);
+    let statements = parser.parse()?;
 
-    match parser.parse() {
-        None => {}
-        Some(expr) => {
-            self.interpreter.interpret(&expr);
-                // let printer = AstPrinter {};
-                // println!("AST Printer:\n{}", printer.print(&expr)?);
-            }
-        }
+    if self.interpreter.interpret(&statements) {
         Ok(())
+    } else {
+        Err(LoxError::error(0, ""))
+        }
+        
     }
 }

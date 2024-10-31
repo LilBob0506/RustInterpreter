@@ -1,44 +1,42 @@
-use crate::entities::*;
-use crate::expr2::Expr;
+use crate::errors::*;
+use crate::expr::*;
 
-pub trait Walky<'a, T> {
-    fn walk(&mut self, s: &'a Stmt<'a>) -> T;
+pub enum Stmt {
+    Expression(ExpressionStmt),
+    Print(PrintStmt),
 }
 
-pub enum Stmt<'a> {
-    Block {
-        statements: &'a [Box<Stmt<'a>>],
-    },
-    Class {
-        name: &'a Token,
-        superclass: Expr<'a>,         // Always a Variable
-        methods: &'a [Box<Stmt<'a>>], // Always Functions
-    },
-    Expression {
-        expression: Expr<'a>,
-    },
-    Function {
-        name: &'a Token,
-        params: &'a [&'a Token],
-        body: &'a [Box<Stmt<'a>>],
-    },
-    If {
-        condition: Expr<'a>,
-        then_branch: Box<Stmt<'a>>,
-        else_branch: Box<Stmt<'a>>,
-    },
-    Print {
-        expression: Expr<'a>,
-    },
-    Return {
-        value: Expr<'a>,
-    },
-    Var {
-        name: &'a Token,
-        initializer: Option<Expr<'a>>,
-    },
-    While {
-        condition: Expr<'a>,
-        body: Box<Stmt<'a>>,
-    },
+impl Stmt {
+    pub fn accept<T>(&self, stmt_visitor: &dyn StmtVisitor<T>) -> Result<T, LoxError> {
+        match self {
+            Stmt::Expression(v) => v.accept(stmt_visitor),
+            Stmt::Print(v) => v.accept(stmt_visitor),
+        }
+    }
 }
+
+pub struct ExpressionStmt {
+    pub expression: Expr,
+}
+
+pub struct PrintStmt {
+    pub expression: Expr,
+}
+
+pub trait StmtVisitor<T> {
+    fn visit_expression_stmt(&self, expr: &ExpressionStmt) -> Result<T, LoxError>;
+    fn visit_print_stmt(&self, expr: &PrintStmt) -> Result<T, LoxError>;
+}
+
+impl ExpressionStmt {
+    pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_expression_stmt(self)
+    }
+}
+
+impl PrintStmt {
+    pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_print_stmt(self)
+    }
+}
+

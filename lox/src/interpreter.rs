@@ -1,16 +1,22 @@
 use crate::entities::*;
 use crate::errors::*;
 use crate::expr::*;
-
+use crate::stmt::*;
 pub struct Interpreter {}
-impl ExprVisitor<LiteralValue> for Interpreter {
-    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<LiteralValue, LoxError> {
-        let value = self.evaluate(&expr.value);
-        self.environment
-            .borrow_mut()
-            .assign(&expr.name, value)?;
-        Ok(value)
+
+impl StmtVisitor<()> for Interpreter {
+    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxError> {
+        self.evaluate(&stmt.expression)?;
+        Ok(())
     }
+    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<(), LoxError> {
+        let value = self.evaluate(&stmt.expression)?;
+        println!("{value}");
+        Ok(())
+    }
+}
+
+impl ExprVisitor<LiteralValue> for Interpreter {
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<LiteralValue, LoxError> {
         Ok(expr.value.clone().unwrap())
     }
@@ -38,6 +44,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                     todo!("need to work on your code dude");
                 }
             },
+            
             (LiteralValue::Num(left), LiteralValue::Str(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
                 _ => LiteralValue::ArithmeticError,
@@ -93,30 +100,32 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             )),
         }
     }
-    fn visit_variable_expr(&self, _expr: &VariableExpr) -> Result<LiteralValue, LoxError> {
-        todo!()
-    }
 }
 
 impl Interpreter {
     fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, LoxError> {
         expr.accept(self)
     }
+
+    fn execute(&self, stmt: &Stmt) -> Result<(), LoxError> {
+        stmt.accept(self)
+    }
+
     // Anything that is not Nil or False is true
     fn is_truthy(&self, literal_value: &LiteralValue) -> bool {
         !matches!(literal_value, LiteralValue::Nil | LiteralValue::Bool(false))
     }
-    pub fn interpret(&self, expr: &Expr) -> bool {
-        match self.evaluate(&expr) {
-            Ok(v) => {
-                println!("{}", v);
-                true
-            }
-            Err(e) => {
+    pub fn interpret(&self, statements: &[Stmt]) -> bool {
+        let mut success = true;
+        for statement in statements {
+            if let Err(e) = self.execute(statement) {
                 e.report("");
-                false
+
+                success = false;
+                break;
             }
         }
+        success
     }
 }
 
