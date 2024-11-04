@@ -1,7 +1,10 @@
+use std::result;
+
 use crate::expr::*;
 use crate::entities::*;
 use crate::errors::*;
 use crate::stmt::*;
+use crate::Lox;
 pub struct Parser<'a> {
     tokens: &'a Vec<Token>,
     current: usize,
@@ -15,7 +18,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
         let mut statements = Vec::new();
         while !self.is_at_end() {
-            statements.push(self.statement()?)
+            statements.push(self.declaration()?)
         }
         Ok(statements)
     }
@@ -23,23 +26,86 @@ impl<'a> Parser<'a> {
         self.equality()
     }
 
+    fn declaration(&mut self) -> Result<Stmt, LoxError> {
+        let result = if self.is_match(&[TokenType::VAR]) {
+            return self.var_declaration()
+        } else {
+            self.statement()
+        };
+
+        if result.is_err() {
+            self.synchronize();
+        }
+        result
+    }
+
     fn statement(&mut self) -> Result<Stmt, LoxError> {
+        if self.is_match(&[TokenType::IF]) {
+            return self.if_statement();
+        }
         if self.is_match(&[TokenType::PRINT]) {
             return self.print_statement();
         }
+        if self.is_match(&[TokenType::LEFT_BRACE]) {
+            return Ok(Stmt::Block(BlockStmt { statments: self.block()? }))
+        }
         self.expression_statement()
     }
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+        let condition = self.expression()?;
+        self.consume(TokenType::RIGHT_PAREN, "Expect ')' after 'if'.");
+
+        let then_branch = Box::new(self.statement()?);
+        let else_branch = if self.is_match(&[TokenType::ELSE]) {
+            Some(Box::new(self.statement()?))
+        } else {
+            None
+        };
+
+        Ok(Stmt::If(IfStmt {
+            condition,
+            then_branch: *then_branch,
+            else_branch,
+        }))
+    }
+
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {
         let value = self.expression()?;
         self.consume(TokenType::SEMICOLON, "Expect ';' after value.")?;
         Ok(Stmt::Print(PrintStmt { expression: value }))
     }
+
+    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::IDENTIFIER, "Expect variable name")?;
+
+        let initializer = if self.is_match(&[TokenType::EQUAL]) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        self.consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.",)?;
+        Ok(Stmt::Variable(VariableStmt {name, initializer}))
+    }
+    
     fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
         let expr = self.expression()?;
         self.consume(TokenType::SEMICOLON, "Expect ';' after value.")?;
         Ok(Stmt::Expression(ExpressionStmt { expression: expr }))
     }
 
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements = Vec::new();
+
+        while !self.check(TokenType::RIGHT_BRACE) && !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+
+        Ok(statements)
+     }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;
@@ -143,6 +209,12 @@ impl<'a> Parser<'a> {
         if self.is_match(&[TokenType::NUMBER, TokenType::STRING]) {
             return Ok(Expr::Literal(LiteralExpr {
                 value: self.previous().literal.clone(),
+            }));
+        }
+
+        if self.is_match(&[TokenType::IDENTIFIER]) {
+            return Ok(Expr::Variable(VariableExpr {
+                name: self.previous().clone(),
             }));
         }
 
