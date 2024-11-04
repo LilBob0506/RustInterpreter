@@ -7,6 +7,7 @@ use std::fmt::Display;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
     // Single-character tokens.
+    Break,
     LEFT_PAREN,
     RIGHT_PAREN,
     LEFT_BRACE,
@@ -76,8 +77,7 @@ impl fmt::Display for LiteralValue {
     }
 }
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

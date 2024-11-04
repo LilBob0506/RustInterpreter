@@ -1,58 +1,60 @@
+use std::cell::RefCell;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-
-use crate::entities::{self, *};
+use std::rc::Rc;
+//use crate::entities;
+use crate::entities::*;
 use crate::errors::*;
+
+#[derive(Debug)]
 pub struct Environment {
-    enclosing: Option<Box<Environment>>,
-    values: HashMap<String, LoxValue>,
+    values: HashMap<String, LiteralValue>,
+    enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
 impl Environment {
     pub fn new() -> Environment {
         Environment {
-            enclosing: None,
             values: HashMap::new(),
+            enclosing: None,
         }
     }
 
-    pub fn new_enclosing(enclosing: Option<Box<Environment>>) -> Self {
+    pub fn new_with_enclosing(enclosing: Rc<RefCell<Environment>>) -> Environment {
         Environment {
             values: HashMap::new(),
-            enclosing: enclosing,
+            enclosing: Some(enclosing),
         }
     }
 
-    pub fn assign(&mut self, name: &Token, value: LoxValue) -> Result<(), RuntimeError> {
-        if self.values.contains_key(&name.lexeme) {
-            self.values.insert(name.lexeme.clone(), value);
-            return Ok(());
-        } else if let Some(enclosing_env) = &mut self.enclosing {
-            enclosing_env.assign(name, value);
-            return Ok(());
-        } else {
-            let _runtime_error = RuntimeError {
-                token: name,
-                message: &format!("Undefined variable '{}'.", name.lexeme),
-            };
+    pub fn assign(&mut self, name: &Token, value: LiteralValue) -> Result<(), LoxResult> {
+        if let Entry::Occupied(mut object) = self.values.entry(name.as_string().to_string()) {
+            object.insert(value);
             Ok(())
+        } else if let Some(enclosing) = &self.enclosing {
+            enclosing.borrow_mut().assign(name, value)
+        } else {
+            Err(LoxResult::runtime_error(
+                name,
+                &format!("Undefined variable '{}'.", name.as_string()),
+            ))
         }
     }
 
-    pub fn define(&mut self, name: String, value: LoxValue) {
-        self.values.insert(name, value);
+    pub fn define(&mut self, name: &str, value: LiteralValue) {
+        self.values.insert(name.to_string(), value);
     }
 
-    pub fn get(&mut self, name: &Token) -> Result<LoxValue, RuntimeError> {
-        if let Some(_object) = self.values.get(&name.to_string()) {
-            return Ok(crate::environment::LoxValue::Nil);
-        } else if let Some(enclosing_env) = &mut self.enclosing {
-            return enclosing_env.get(name);
+    pub fn get(&self, name: &Token) -> Result<LiteralValue, LoxResult> {
+        if let Some(object) = self.values.get(name.as_string()) {
+            Ok(object.clone())
+        } else if let Some(enclosing) = &self.enclosing {
+            enclosing.borrow().get(name)
+        } else {
+            Err(LoxResult::runtime_error(
+                name,
+                &format!("Undefined variable '{}'.", name.as_string()),
+            ))
         }
-        let _runtime_error = RuntimeError {
-            token: name,
-            message: "Operands must be numbers.",
-        };
-        let lox_value = Ok(entities::LoxValue::Nil);
-        lox_value
     }
 }
