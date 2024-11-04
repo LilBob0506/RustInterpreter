@@ -2,6 +2,8 @@ use core::fmt;
 use std::cmp::*;
 //use std::ops::*;
 
+use crate::callable::*;
+
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -61,6 +63,7 @@ pub enum LiteralValue {
     Num(f64),
     Str(String),
     Bool(bool),
+    Func(Callable),
     Nil,
     ArithmeticError,
 }
@@ -72,6 +75,7 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::Bool(true) => write!(f, "true"),
             LiteralValue::Bool(false) => write!(f, "false"),
+            LiteralValue::Func(_) => write!(f, "<func>"),
             &LiteralValue::ArithmeticError => panic!("Should not be trying to print this"),
         }
     }

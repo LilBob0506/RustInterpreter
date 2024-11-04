@@ -12,10 +12,11 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()> {
     define_ast(
         output_dir,
         "Expr",
-        &["errors", "entities"],
+        &["errors", "entities", "rc"],
         &[
             "Assign   : Token name, Box<Expr> value",
             "Binary   : Box<Expr> left, Token operator, Box<Expr> right",
+            "Call     : Rc<Expr> callee, Token paren, Vec<Expr> arguments",
             "Grouping : Box<Expr> expression",
             "Literal  : Option<LiteralValue> value",
             "Logical  : Box<Expr> left, Token operator, Box<Expr> right",

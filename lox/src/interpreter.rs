@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::callable::LoxCallable;
 use crate::entities::*;
 use crate::environment::*;
 use crate::errors::*;
@@ -185,6 +186,22 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             .borrow_mut()
             .assign(&expr.name, value.clone())?;
         Ok(value)
+    }
+    
+    fn visit_call_expr(&self, expr: &CallExpr) -> Result<LiteralValue, LoxResult> {
+        let callee = self.evaluate(&expr.callee);
+
+        let mut arguments = Vec::new();
+        for argument in &expr.arguments {
+            arguments.push(self.evaluate(argument)?);
+        }
+
+        if let Ok(LiteralValue::Func(function)) = callee {
+            function.call(self, arguments)
+        }
+        else {
+            Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
+        }
     }
 }
 
