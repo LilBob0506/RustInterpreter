@@ -1,8 +1,18 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entities::*;
+use crate::environment;
+use crate::environment::Environment;
 use crate::errors::*;
 use crate::expr::*;
+use crate::stmt;
 use crate::stmt::*;
-pub struct Interpreter {}
+#[derive()]
+
+pub struct Interpreter {
+    environment: RefCell<Rc<RefCell<Environment>>>,
+}
 
 impl StmtVisitor<()> for Interpreter {
     fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxError> {
@@ -13,6 +23,18 @@ impl StmtVisitor<()> for Interpreter {
         let value = self.evaluate(&stmt.expression)?;
         println!("{value}");
         Ok(())
+    }
+    
+    fn visit_if_stmt(&self, expr: &IfStmt) -> Result<(), LoxError> {
+        todo!()
+    }
+    
+    fn visit_block_stmt(&self, expr: &BlockStmt) -> Result<(), LoxError> {
+        self.execute_block(&stmt.statements, Environment::new_enclosing(Rc::clone(self.environment)))
+    }
+    
+    fn visit_variable_stmt(&self, expr: &VariableStmt) -> Result<(), LoxError> {
+        todo!()
     }
 }
 
@@ -41,7 +63,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
                 TokenType::EQUAL => LiteralValue::Bool(left == right),
                 _ => {
-                    todo!("need to work on your code dude");
+                    todo!();
                 }
             },
             
@@ -100,15 +122,30 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             )),
         }
     }
+    
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<LiteralValue, LoxError> {
+        todo!()
+    }
 }
 
 impl Interpreter {
+    pub fn new() -> Interpreter {
+        Interpreter {
+            environment: Rc:new(RefCell::new(Environment::new())),
+        }
+    }
+
     fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, LoxError> {
         expr.accept(self)
     }
 
     fn execute(&self, stmt: &Stmt) -> Result<(), LoxError> {
         stmt.accept(self)
+    }
+
+    fn execute_block(&self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
+        let previous = self.environment.replace(environment);
+
     }
 
     // Anything that is not Nil or False is true

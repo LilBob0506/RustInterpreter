@@ -16,6 +16,7 @@ pub fn generate_ast(output_dir: &String) -> io::Result<()> {
             "Grouping : Box<Expr> expression".to_string(),
             "Literal  : Option<LiteralValue> value".to_string(),
             "Unary    : Token operator, Box<Expr> right".to_string(),
+            "Variable : Token name".to_string(),
         ],
     )?;
 
@@ -24,8 +25,11 @@ pub fn generate_ast(output_dir: &String) -> io::Result<()> {
         &"Stmt".to_string(),
         &vec!["errors", "expr"],
         &vec![
+            "Block      : List<Stmt> statments".to_string(),
             "Expression : Expr expression".to_string(),
+            "If         : Expr condition, Stmt then_branch, Option<Box<Stmt>> else_branch".to_string(),
             "Print      : Expr expression".to_string(),
+            "Variable   : Token name, Option<Expr> initializer".to_string(),
         ],
     )?;
 
