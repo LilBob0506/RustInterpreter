@@ -1,8 +1,8 @@
 use core::fmt;
-use std::cmp::*;
+use std::{cmp::*, time::SystemTime};
 //use std::ops::*;
 
-use crate::callable::*;
+use crate::{callable::*, interpreter, LoxResult};
 
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
@@ -185,6 +185,29 @@ impl From<bool> for LoxValue {
         LoxValue::Boolean(value)
     }
 }
+
+pub struct NativeClock;
+
+impl LoxCallable for NativeClock {
+    fn call(&self, _interpreter: &Interpreter, _arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
+        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+            Ok(n) => Ok(LiteralValue::Num(n.as_millis()as f64)),
+            Err(e) => Err(LoxResult::system_error(&format!(
+                "Clock returned invalid duration: {:?}",
+                e.duration()
+            ))),
+        }
+    }
+
+    fn arity(&self) -> usize {
+        0
+    }
+    
+    fn to_string(&self) -> String {
+        "Native:Clock".to_string()
+    }
+}
+
 
 //#[derive(Debug)]
 /*pub struct RuntimeError<'a> {

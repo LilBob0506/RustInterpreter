@@ -1,6 +1,8 @@
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::callable::Callable;
 use crate::callable::LoxCallable;
 use crate::entities::*;
 use crate::environment::*;
@@ -10,6 +12,7 @@ use crate::stmt::*;
 #[derive()]
 
 pub struct Interpreter {
+    globals: Rc<RefCell<Environment>>,
     environment: RefCell<Rc<RefCell<Environment>>>,
     nest: RefCell<usize>,
 }
@@ -73,6 +76,10 @@ impl StmtVisitor<()> for Interpreter {
             .borrow()
             .borrow_mut()
             .define(stmt.name.as_string(), value);
+        Ok(())
+    }
+    
+    fn visit_function_stmt(&self, expr: &FunctionStmt) -> Result<(), LoxResult> {
         Ok(())
     }
 }
@@ -197,9 +204,14 @@ impl ExprVisitor<LiteralValue> for Interpreter {
         }
 
         if let Ok(LiteralValue::Func(function)) = callee {
+            if arguments.len() != function.func.arity() {
+                return Err(LoxResult::runtime_error(
+                    &expr.paren, 
+                    &format!("Expected {} arguments but got {}.", function.func.arity(), arguments.len()),
+                ))
+            }
             function.call(self, arguments)
-        }
-        else {
+        } else {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
     }
@@ -207,7 +219,15 @@ impl ExprVisitor<LiteralValue> for Interpreter {
 
 impl Interpreter {
     pub fn new() -> Interpreter {
+        let globals = Rc::new(RefCell::new(Environment::new()));
+
+        globals.borrow_mut().define("clock", LiteralValue::Func(Callable {
+            func: Rc::new(NativeClock {}),
+            arity: 0,
+        }));
+
         Interpreter {
+            globals: Rc::clone(&globals), 
             environment: RefCell::new(Rc::new(RefCell::new(Environment::new()))),
             nest: RefCell::new(0),
         }
