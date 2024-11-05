@@ -58,7 +58,7 @@ impl Environment {
         }
     }
 
-    pub fn get_at(&self, distance: usize, name: &str) -> Result<Object, LoxResult> {
+    pub fn get_at(&self, distance: usize, name: &str) -> Result<LiteralValue, LoxResult> {
         if distance == 0 {
             Ok(self.values.get(name).unwrap().clone())
         } else {
@@ -73,7 +73,7 @@ impl Environment {
         &mut self,
         distance: usize,
         name: &Token,
-        value: Object,
+        value: LiteralValue,
     ) -> Result<(), LoxResult> {
         if distance == 0 {
             self.values.insert(name.as_string(), value);

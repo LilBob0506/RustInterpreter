@@ -7,6 +7,7 @@ use crate::callable::*;
 use crate::errors::*;
 use crate::environment::*;
 
+use std::cell::RefCell;
 pub struct LoxFunction {
     name: Token,
     params: Rc<Vec<Token>>,
@@ -19,9 +20,9 @@ impl LoxFunction {
     pub fn new(declaration: &Rc<FunctionStmt>, closure: &Rc<RefCell<Environment>>) -> Self {
         Self { 
             name: declaration.name.dup(),
-            params: Rc::clone(declaration.params),
+            params: Rc::clone(&declaration.params),
             body: Rc::clone(declaration.body),
-            closure: Rc::clone(&closure),
+            closure: Rc::clone(closure),
         }
     }
 }
@@ -30,7 +31,7 @@ impl LoxCallable for LoxFunction {
     fn call(&self, interpreter: &Interpreter, argument: &Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
         let mut e = Environment::new_with_enclosing(Rc::clone(&self.closure));
 
-        for (param, arg) in self.params.iter().zip(arguments.iter()) {
+        for (param, arg) in self.params.iter().zip(argument.iter()) {
             e.define(param.as_string(), arg.clone());
         }
 
@@ -42,10 +43,10 @@ impl LoxCallable for LoxFunction {
     }
 
     fn arity(&self) -> usize {
-        self.declaration.param.len()
+        self.params.len()
     }
 
     fn to_string(&self) -> String {
-        self.delcaration.name.as_string().int()
+        self.name.as_string().int()
     }
 }

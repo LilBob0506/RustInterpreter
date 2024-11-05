@@ -3,12 +3,11 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::error::*;
+use crate::errors::*;
 use crate::expr::*;
 use crate::interpreter::*;
+use crate::entities::*;
 use crate::stmt::*;
-use crate::token::*;
-
 
 pub struct Resolver<'a> {
     interpreter: &'a Interpreter,
@@ -76,7 +75,6 @@ impl<'a> StmtVisitor<()> for Resolver<'a> {
 impl<'a> ExprVisitor<()> for Resolver<'a> {
     fn visit_call_expr(&self, _: Rc<Expr>, expr: &CallExpr) -> Result<(), LoxResult> {
         self.resolve_expr(expr.callee.clone())?;
-
         for argument in expr.arguments.iter() {
             self.resolve_expr(argument.clone())?;
         }
@@ -114,15 +112,14 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
 
     fn visit_variable_expr(&self, wrapper: Rc<Expr>, expr: &VariableExpr) -> Result<(), LoxResult> {
         if !self.scopes.borrow().is_empty()
-          
-            && self
+            && !self
                 .scopes
                 .borrow()
                 .last()
                 .unwrap()
                 .borrow()
                 .get(&expr.name.as_string())
-                == Some(&false)
+                .unwrap()
         {
             Err(LoxResult::runtime_error(
                 &expr.name,
@@ -134,6 +131,7 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
         }
     }
 }
+
 
 impl<'a> Resolver<'a> {
     pub fn new(interpreter: &'a Interpreter) -> Self {
@@ -155,7 +153,7 @@ impl<'a> Resolver<'a> {
     }
 
     fn resolve_expr(&self, expr: Rc<Expr>) -> Result<(), LoxResult> {
-        expr.accept(expr.clone(), self)
+        expr.accept(expr.clone(),self)
     }
 
     fn begin_scope(&self) {

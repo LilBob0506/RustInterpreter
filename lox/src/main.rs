@@ -32,7 +32,6 @@ use resolver::*;
 mod errors;
 use errors::*;
 
-mod lox_function;
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {

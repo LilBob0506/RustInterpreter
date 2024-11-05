@@ -2,7 +2,7 @@ use core::fmt;
 use std::{cmp::*, time::SystemTime};
 //use std::ops::*;
 
-use crate::{callable::*, interpreter, LoxResult};
+use crate::{callable::*, interpreter::*, LoxResult};
 
 use std::fmt::Display;
 #[allow(non_camel_case_types)]

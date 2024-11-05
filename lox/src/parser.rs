@@ -4,7 +4,6 @@ use crate::entities::*;
 use crate::errors::*;
 use crate::expr::*;
 use crate::stmt::*;
-use crate::HAD_ERROR;
 
 pub struct Parser<'a> {
     tokens: &'a [Token],
@@ -214,9 +213,9 @@ impl<'a> Parser<'a> {
         
         let mut params = Vec::new();
         if !self.check(TokenType::RIGHT_PAREN) {
-            parameters.push(self.consume(TokenType::IDENTIFIER, "Expect parameter name"));
+            params.push(self.consume(TokenType::IDENTIFIER, "Expect parameter name"));
             while self.is_match(&[TokenType::COMMA]) {
-                if parameters.len() >= 255 {
+                if params.len() >= 255 {
                     if !self.had_error {
                         let peek = self.peek().dup();
                         self.error(&peek, "Can't have more than 255 parameters");
@@ -413,7 +412,7 @@ impl<'a> Parser<'a> {
 
         loop {
             if self.is_match(&[TokenType::LEFT_PAREN]) {
-                expr = self.finish_call(&RC::new(expr))?;
+                expr = self.finish_call(&Rc::new(expr))?;
             } else {
                 break;
             }

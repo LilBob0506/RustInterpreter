@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+//use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -13,7 +13,7 @@ use crate::expr::*;
 use crate::lox_function::LoxFunction;
 use crate::stmt;
 use crate::stmt::*;
-use crate::lox_function::*;
+//use crate::lox_function::*;
 #[derive()]
 
 pub struct Interpreter {
@@ -25,24 +25,24 @@ pub struct Interpreter {
 
 impl StmtVisitor<()> for Interpreter {
     fn visit_return_stmt(&self, _: Rc<Stmt>, stmt: &ReturnStmt) -> Result<(), LoxResult> {
-        if let Some(value) = stmt.value.clone() {
+        if let Some(value) = &stmt.value.clone() {
             Err(LoxResult::return_value(self.evaluate(value)?))
         } else {
-            Err(LoxResult::return_value(Object::Nil))
+            Err(LoxResult::return_value(LiteralValue::Nil))
         }
     }
 
-    fn visit_function_stmt(&self, _: Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
+    fn visit_function_stmt(&self, _: &Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
         let function = LoxFunction::new(stmt, self.environment.borrow().deref());
         self.environment.borrow().borrow_mut().define(
             &stmt.name.as_string(),
-            Object::Func(Callable {
+            LiteralValue::Func(Callable {
                 func: Rc::new(function),
             }),
         );
         Ok(())
     }
-    fn visit_break_stmt(&self, stmt: &BreakStmt) -> Result<(), LoxResult> {
+    fn visit_break_stmt(&self, _: Rc<Stmt>, stmt: &BreakStmt) -> Result<(), LoxResult> {
         if *self.nest.borrow() == 0 {
             Err(LoxResult::runtime_error(
                 &stmt.token,
@@ -52,10 +52,10 @@ impl StmtVisitor<()> for Interpreter {
             Err(LoxResult::Break)
         }
     }
-    fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<(), LoxResult> {
+    fn visit_while_stmt(&self, _: Rc<Stmt>, stmt: &WhileStmt) -> Result<(), LoxResult> {
         *self.nest.borrow_mut() += 1;
-        while self.is_truthy(&self.evaluate(&stmt.condition)?) {
-            match self.execute(&stmt.body) {
+        while self.is_truthy(&self.evaluate(&stmt.condition.clone())?) {
+            match self.execute(&stmt.body.clone()) {
                 Err(LoxResult::Break) => break,
                 Err(e) => return Err(e),
                 Ok(_) => {}
@@ -65,19 +65,19 @@ impl StmtVisitor<()> for Interpreter {
         Ok(())
     }
     fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxResult> {
-        self.evaluate(&stmt.expression)?;
+        self.evaluate(&stmt.expression.clone())?;
         Ok(())
     }
-    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<(), LoxResult> {
-        let value = self.evaluate(&stmt.expression)?;
+    fn visit_print_stmt(&self, _: Rc<Stmt>, stmt: &PrintStmt) -> Result<(), LoxResult> {
+        let value = self.evaluate(stmt.expression.clone())?;
         println!("{value}");
         Ok(())
     }
 
-    fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<(), LoxResult> {
-        if self.is_truthy(&self.evaluate(&stmt.condition)?) {
-            self.execute(&stmt.then_branch)
-        } else if let Some(else_branch) = &stmt.else_branch {
+    fn visit_if_stmt(&self, _: Rc<Stmt>, stmt: &IfStmt) -> Result<(), LoxResult> {
+        if self.is_truthy(&self.evaluate(stmt.condition.clone())?) {
+            self.execute(stmt.then_branch.clone())
+        } else if let Some(else_branch) = stmt.else_branch.clone() {
             self.execute(else_branch)
         } else {
             Ok(())
@@ -89,11 +89,11 @@ impl StmtVisitor<()> for Interpreter {
         self.execute_block(&stmt.statements, e)
     }
 
-    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<(), LoxResult> {
-        let value = if let Some(initializer) = &stmt.initializer {
+    fn visit_var_stmt(&self, _: Rc<Stmt>, stmt: &VarStmt) -> Result<(), LoxResult> {
+        let value = if let Some(initializer) = stmt.initializer.clone() {
             self.evaluate(initializer)?
         } else {
-            LiteralValue::Nil
+            Object::Nil
         };
 
         self.environment
@@ -217,7 +217,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
     }
     }
     fn visit_logical_expr(&self, _: Rc<Expr>, expr: &LogicalExpr) -> Result<LiteralValue, LoxResult> {
-        let left = self.evaluate(&expr.left)?;
+        let left = self.evaluate(&expr.left.clone())?;
 
         if expr.operator.is(TokenType::OR) {
             if self.is_truthy(&left) {
@@ -247,10 +247,10 @@ impl ExprVisitor<LiteralValue> for Interpreter {
     }
     
     fn visit_call_expr(&self, expr: &CallExpr) -> Result<LiteralValue, LoxResult> {
-        let callee = self.evaluate(&expr.callee);
+        let callee = self.evaluate(&expr.callee.clone())?;
 
         let mut arguments = Vec::new();
-        for argument in &expr.arguments {
+        for argument in &expr.arguments.clone() {
             arguments.push(self.evaluate(argument)?);
         }
 
@@ -266,7 +266,6 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
     }
-
 impl Interpreter {
     pub fn new() -> Interpreter {
         let globals = Rc::new(RefCell::new(Environment::new()));
@@ -341,7 +340,7 @@ impl Interpreter {
             self.globals.borrow().get(name)
         }
 }
-
+}
 /*#[cfg(test)]
 mod tests {
     use super::*;

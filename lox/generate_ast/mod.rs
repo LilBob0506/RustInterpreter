@@ -26,8 +26,8 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()> {
     )?;
     define_ast(
         output_dir,
-        "stmt",
-        &["errors", "expr", "entities","rc"],
+        "Stmt",
+        &["errors", "expr", "entities", "rc"],
         &[
             "Block      : Rc<Vec<Rc<Stmt>>> statements",
             "Break      : Token token",
@@ -113,7 +113,6 @@ fn define_ast(
     writeln!(file, "        }}\n    }}\n}}\n")?;
 
     writeln!(file, "impl {} {{", base_name)?;
-
     writeln!(file, "    pub fn accept<T>(&self, wrapper: Rc<{}>, {}_visitor: &dyn {base_name}Visitor<T>) -> Result<T, LoxResult> {{", base_name, base_name.to_lowercase())?;
     writeln!(file, "        match self {{")?;
     for t in &tree_types {
@@ -122,7 +121,8 @@ fn define_ast(
             "            {0}::{1}(v) => {3}_visitor.visit_{2}_{3}(wrapper, v),",
             base_name,
             t.base_class_name,
-            base_name.to_lowercase()
+            t.base_class_name.to_lowercase(),
+            base_name.to_lowercase(),
         )?;
     }
     writeln!(file, "        }}")?;
