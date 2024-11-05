@@ -15,10 +15,15 @@ pub enum LoxResult {
     ParseError { token: Token, message: String },
     RuntimeError { token: Token, message: String },
     Error { line: usize, message: String },
+    SystemError { message: String },
+    ReturnValue { value: LiteralValue },
     Break,
 }
 
 impl LoxResult {
+    pub fn return_value(value: LiteralValue) -> LoxResult {
+        LoxResult::ReturnValue { value }
+    }
     pub fn error(line: usize, message: &str) -> LoxResult {
         let err = LoxResult::Error {
             line,
@@ -58,7 +63,11 @@ impl LoxResult {
             LoxResult::Error { line, message } => {
                 eprintln!("[line {}] Error{}: {}", line, loc, message);
             }
+            LoxResult::SystemError { message } => {
+                eprint!("System Error: {message}");
+            }
             LoxResult::Break => {}
+            LoxResult::ReturnValue { value } => todo!(),
         };
     }
 }

@@ -53,6 +53,11 @@ impl<'a> Parser<'a> {
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxResult> {
+        if self.is_match(&[TokenType::Break]) {
+            let token = self.peek().dup();
+            self.consume(TokenType::SEMICOLON, "Expect ';' after break statement.")?;
+            return Ok(Stmt::Break(BreakStmt { token }))
+        }
         if self.is_match(&[TokenType::FOR]) {
             return self.for_statement();
         }
@@ -62,6 +67,10 @@ impl<'a> Parser<'a> {
 
         if self.is_match(&[TokenType::PRINT]) {
             return self.print_statement();
+        }
+
+        if self.is_match(&[TokenType::RETURN]) {
+            return self.return_statement();
         }
 
         if self.is_match(&[TokenType::WHILE]) {
@@ -155,6 +164,19 @@ impl<'a> Parser<'a> {
         Ok(Stmt::Print(PrintStmt { expression: value }))
     }
 
+    fn return_statement(&mut self) -> Result<Stmt, LoxResult> {
+        let keyword = self.previous();
+        let value = if self.check(TokenType::SEMICOLON) {
+            None
+        } else {
+            Some(self.expression()?)
+        };
+
+        self.consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+
+        Ok(Stmt::Return(ReturnStmt { keyword, value }))
+    }
+
     fn var_declaration(&mut self) -> Result<Stmt, LoxResult> {
         let name = self.consume(TokenType::IDENTIFIER, "Expect variable name")?;
 
@@ -207,8 +229,12 @@ impl<'a> Parser<'a> {
         self.consume(TokenType::RIGHT_PAREN, "Expect parameter name")?;
 
         self.consume(TokenType::LEFT_BRACE, &format!("Expect '{{' before  {kind} body"));
-        let body = self.block()?;
-        Ok(Stmt::Function(FunctionStmt { name, params: parameters, body, }))
+        let body = Rc::new(self.block()?);
+        Ok(Stmt::Function(FunctionStmt { 
+            name, 
+            params: Rc::new(params), 
+            body, 
+        }))
     }
 
     fn block(&mut self) -> Result<Vec<Stmt>, LoxResult> {

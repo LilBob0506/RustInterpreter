@@ -9,6 +9,7 @@ pub enum Stmt {
     Function(FunctionStmt),
     If(IfStmt),
     Print(PrintStmt),
+    Return(ReturnStmt),
     Var(VarStmt),
     While(WhileStmt),
 }
@@ -22,6 +23,7 @@ impl Stmt {
             Stmt::Function(v) => v.accept(stmt_visitor),
             Stmt::If(v) => v.accept(stmt_visitor),
             Stmt::Print(v) => v.accept(stmt_visitor),
+            Stmt::Return(v) => v.accept(stmt_visitor),
             Stmt::Var(v) => v.accept(stmt_visitor),
             Stmt::While(v) => v.accept(stmt_visitor),
         }
@@ -42,8 +44,8 @@ pub struct ExpressionStmt {
 
 pub struct FunctionStmt {
     pub name: Token,
-    pub params: Vec<Token>,
-    pub body: Vec<Stmt>,
+    pub params: Rc<Vec<Token>>,
+    pub body: Rc<Vec<Stmt>>,
 }
 
 pub struct IfStmt {
@@ -54,6 +56,11 @@ pub struct IfStmt {
 
 pub struct PrintStmt {
     pub expression: Expr,
+}
+
+pub struct ReturnStmt {
+    pub keyword: Token,
+    pub value: Expr,
 }
 
 pub struct VarStmt {
@@ -73,6 +80,7 @@ pub trait StmtVisitor<T> {
     fn visit_function_stmt(&self, expr: &FunctionStmt) -> Result<T, LoxResult>;
     fn visit_if_stmt(&self, expr: &IfStmt) -> Result<T, LoxResult>;
     fn visit_print_stmt(&self, expr: &PrintStmt) -> Result<T, LoxResult>;
+    fn visit_return_stmt(&self, expr: &ReturnStmt) -> Result<T, LoxResult>;
     fn visit_var_stmt(&self, expr: &VarStmt) -> Result<T, LoxResult>;
     fn visit_while_stmt(&self, expr: &WhileStmt) -> Result<T, LoxResult>;
 }
@@ -110,6 +118,12 @@ impl IfStmt {
 impl PrintStmt {
     pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
         visitor.visit_print_stmt(self)
+    }
+}
+
+impl ReturnStmt {
+    pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
+        visitor.visit_return_stmt(self)
     }
 }
 

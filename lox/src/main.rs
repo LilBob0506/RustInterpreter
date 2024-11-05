@@ -5,6 +5,7 @@ mod entities;
 use std::rc::Rc;
 
 mod callable;
+mod lox_function;
 
 mod environment;
 //use environment::*;

@@ -8,46 +8,44 @@ use crate::errors::*;
 use crate::environment::*;
 
 pub struct LoxFunction {
-    declaration: Rc<Stmt>
+    name: Token,
+    params: Rc<Vec<Token>>,
+    body: Rc<Vec<Stmt>>,
+    closure: Rc<Environment>,
+
 }
 
 impl LoxFunction {
-    pub fn new(declaration: &Stmt) -> Self {
+    pub fn new(declaration: &Rc<FunctionStmt>, closure: &Rc<RefCell<Environment>>) -> Self {
         Self { 
-            declaration: Rc::clone(declaration), 
+            name: declaration.name.dup(),
+            params: Rc::clone(declaration.params),
+            body: Rc::clone(declaration.body),
+            closure: Rc::clone(&closure),
         }
     }
 }
 
 impl LoxCallable for LoxFunction {
     fn call(&self, interpreter: &Interpreter, argument: &Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
-        if let Stmt::Function(FunctionStmt { name, params, body }) = self.declaration.deref() {
-            let mut e = Environment::new_with_enclosing(Rc::clone(interpreter.globals));
+        let mut e = Environment::new_with_enclosing(Rc::clone(&self.closure));
 
-            for (param, arg) in self.declaration.params.iter().zip(arguments.iter()) {
-                e.borrow_mut().define(param.as_string(), arg);
-            }
+        for (param, arg) in self.params.iter().zip(arguments.iter()) {
+            e.define(param.as_string(), arg.clone());
+        }
 
-            interpreter.execute_block(self.declaration.body, environment);
-            Ok(LiteralValue::NIL)
-        } else {
-            panic!();
+        match interpreter.execute_block(&self.body, e) {
+            Err(LoxResult::ReturnValue { value }) => Ok(value),
+            Err(e) => Err(e),
+            Ok(_) => Ok(LiteralValue::Nil)
         }
     }
 
     fn arity(&self) -> usize {
-        if let Stmt::Function(FunctionStmt { name, params, body }) = self.declaration.deref() {
-            param.len()
-        } else {
-            panic!();
-        }
+        self.declaration.param.len()
     }
 
     fn to_string(&self) -> String {
-        if let Stmt::Function(FunctionStmt { name, params, body }) = self.declaration.deref() {
-            param.len()
-        } else {
-            panic!();
-        }
+        self.delcaration.name.as_string().int()
     }
 }

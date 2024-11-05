@@ -12,7 +12,7 @@ pub struct Callable {
 
 impl Debug for Callable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Callable").field("func", &self.func).finish()
+        write!(f, "{}", LoxCallable::to_string(self))
     }
 }
 
@@ -25,7 +25,7 @@ impl Display for Callable {
 
 impl PartialEq for Callable {
     fn eq(&self, other: &Self) -> bool {
-        self.func == other.func
+        Rc::ptr_eq(&self.func, &other.func)
     }
 }
 
