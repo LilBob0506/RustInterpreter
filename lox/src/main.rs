@@ -4,6 +4,7 @@ use std::io::{self, stdout, BufRead, Write};
 mod entities;
 
 mod callable;
+mod lox_function;
 
 mod environment;
 //use environment::*;

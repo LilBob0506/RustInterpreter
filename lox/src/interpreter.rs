@@ -8,11 +8,13 @@ use crate::entities::*;
 use crate::environment::*;
 use crate::errors::*;
 use crate::expr::*;
+use crate::lox_function::LoxFunction;
+use crate::stmt;
 use crate::stmt::*;
 #[derive()]
 
 pub struct Interpreter {
-    globals: Rc<RefCell<Environment>>,
+    pub globals: Rc<RefCell<Environment>>,
     environment: RefCell<Rc<RefCell<Environment>>>,
     nest: RefCell<usize>,
 }
@@ -80,7 +82,19 @@ impl StmtVisitor<()> for Interpreter {
     }
     
     fn visit_function_stmt(&self, expr: &FunctionStmt) -> Result<(), LoxResult> {
+        let function = LoxFunction::new(stmt, &self.environment.borrow());
+        self.environment.borrow().borrow_mut().define(
+            stmt.name.as_string(), 
+            LiteralValue::Func(Rc::new(function)));
         Ok(())
+    }
+    
+    fn visit_return_stmt(&self, expr: &ReturnStmt) -> Result<(), LoxResult> {
+        if let Some(value) = &stmt.value {
+            Err(LoxResult::return_value(self.evaluate(value)?))
+        } else {
+            Err(LoxResult::return_value(LiteralValue::Nil))
+        }
     }
 }
 
@@ -241,7 +255,7 @@ impl Interpreter {
         stmt.accept(self)
     }
 
-    fn execute_block(
+    pub fn execute_block(
         &self,
         statements: &[Stmt],
         environment: Environment,
