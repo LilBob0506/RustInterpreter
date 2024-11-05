@@ -28,7 +28,7 @@ impl Environment {
     }
 
     pub fn assign(&mut self, name: &Token, value: LiteralValue) -> Result<(), LoxResult> {
-        if let Entry::Occupied(mut object) = self.values.entry(name.as_string().to_string()) {
+        if let Entry::Occupied(mut object) = self.values.entry(name.as_string()) {
             object.insert(value);
             Ok(())
         } else if let Some(enclosing) = &self.enclosing {
@@ -55,6 +55,35 @@ impl Environment {
                 name,
                 &format!("Undefined variable '{}'.", name.as_string()),
             ))
+        }
+    }
+
+    pub fn get_at(&self, distance: usize, name: &str) -> Result<Object, LoxResult> {
+        if distance == 0 {
+            Ok(self.values.get(name).unwrap().clone())
+        } else {
+            self.enclosing
+                .as_ref()
+                .unwrap()
+                .borrow()
+                .get_at(distance - 1, name)
+        }
+    }
+    pub fn assign_at(
+        &mut self,
+        distance: usize,
+        name: &Token,
+        value: Object,
+    ) -> Result<(), LoxResult> {
+        if distance == 0 {
+            self.values.insert(name.as_string(), value);
+            Ok(())
+        } else {
+            self.enclosing
+                .as_ref()
+                .unwrap()
+                .borrow_mut()
+                .assign_at(distance - 1, name, value)
         }
     }
 }

@@ -1,6 +1,8 @@
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::collections::HashMap;
+use std::ops::Deref;
 
 use crate::callable::Callable;
 use crate::callable::LoxCallable;
@@ -9,15 +11,35 @@ use crate::environment::*;
 use crate::errors::*;
 use crate::expr::*;
 use crate::stmt::*;
+use crate::lox_function::*;
 #[derive()]
 
 pub struct Interpreter {
-    globals: Rc<RefCell<Environment>>,
+   pub globals: Rc<RefCell<Environment>>,
     environment: RefCell<Rc<RefCell<Environment>>>,
     nest: RefCell<usize>,
+    locals: RefCell<HashMap<Rc<Expr>, usize>>,
 }
 
 impl StmtVisitor<()> for Interpreter {
+    fn visit_return_stmt(&self, _: Rc<Stmt>, stmt: &ReturnStmt) -> Result<(), LoxResult> {
+        if let Some(value) = stmt.value.clone() {
+            Err(LoxResult::return_value(self.evaluate(value)?))
+        } else {
+            Err(LoxResult::return_value(Object::Nil))
+        }
+    }
+
+    fn visit_function_stmt(&self, _: Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
+        let function = LoxFunction::new(stmt, self.environment.borrow().deref());
+        self.environment.borrow().borrow_mut().define(
+            &stmt.name.as_string(),
+            Object::Func(Callable {
+                func: Rc::new(function),
+            }),
+        );
+        Ok(())
+    }
     fn visit_break_stmt(&self, stmt: &BreakStmt) -> Result<(), LoxResult> {
         if *self.nest.borrow() == 0 {
             Err(LoxResult::runtime_error(
@@ -78,13 +100,11 @@ impl StmtVisitor<()> for Interpreter {
             .define(stmt.name.as_string(), value);
         Ok(())
     }
-    
-    fn visit_function_stmt(&self, expr: &FunctionStmt) -> Result<(), LoxResult> {
-        Ok(())
-    }
+
 }
 
 impl ExprVisitor<LiteralValue> for Interpreter {
+
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<LiteralValue, LoxResult> {
         Ok(expr.value.clone().unwrap())
     }
@@ -169,10 +189,16 @@ impl ExprVisitor<LiteralValue> for Interpreter {
         }
     }
 
-    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<LiteralValue, LoxResult> {
-        todo!()
+    fn visit_variable_expr(
+        &self,
+        wrapper: Rc<Expr>,
+        expr: &VariableExpr,
+    ) -> Result<Object, LoxResult> {
+        // self.environment.borrow().borrow().get(&expr.name)
+        self.look_up_variable(&expr.name, wrapper)
     }
-    fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<LiteralValue, LoxResult> {
+    }
+    fn visit_logical_expr(&self, _: Rc<Expr>, expr: &LogicalExpr) -> Result<LiteralValue, LoxResult> {
         let left = self.evaluate(&expr.left)?;
 
         if expr.operator.is(TokenType::OR) {
@@ -186,12 +212,19 @@ impl ExprVisitor<LiteralValue> for Interpreter {
         self.evaluate(&expr.right)
     }
 
-    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<LiteralValue, LoxResult> {
+    fn visit_assign_expr(&self, wrapper: Rc<Expr>,expr: &AssignExpr) -> Result<LiteralValue, LoxResult> {
         let value = self.evaluate(&expr.value)?;
-        self.environment
-            .borrow()
-            .borrow_mut()
-            .assign(&expr.name, value.clone())?;
+        if let Some(distance) = self.locals.borrow().get(&wrapper) {
+            self.environment.borrow().borrow_mut().assign_at(
+                *distance,
+                &expr.name,
+                value.clone(),
+            )?;
+        } else {
+            self.globals
+                .borrow_mut()
+                .assign(&expr.name, value.clone())?;
+        }
         Ok(value)
     }
     
@@ -203,25 +236,25 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             arguments.push(self.evaluate(argument)?);
         }
 
-        if let Ok(LiteralValue::Func(function)) = callee {
+        if let LiteralValue::Func(function) = callee {
             if arguments.len() != function.func.arity() {
                 return Err(LoxResult::runtime_error(
                     &expr.paren, 
                     &format!("Expected {} arguments but got {}.", function.func.arity(), arguments.len()),
-                ))
+                ));
             }
-            function.call(self, arguments)
+            function.func.call(self, arguments)
         } else {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
     }
-}
 
 impl Interpreter {
     pub fn new() -> Interpreter {
         let globals = Rc::new(RefCell::new(Environment::new()));
 
         globals.borrow_mut().define("clock", LiteralValue::Func(Callable {
+            "clock",
             func: Rc::new(NativeClock {}),
             arity: 0,
         }));
@@ -230,6 +263,7 @@ impl Interpreter {
             globals: Rc::clone(&globals), 
             environment: RefCell::new(Rc::new(RefCell::new(Environment::new()))),
             nest: RefCell::new(0),
+            locals: RefCell::new(HashMap::new()),
         }
     }
 
@@ -275,6 +309,19 @@ impl Interpreter {
     pub fn print_environment(&self) {
         println!("{:?}", self.environment);
     }
+    pub fn resolve(&self, expr: Rc<Expr>, depth: usize) {
+        self.locals.borrow_mut().insert(expr, depth);
+    }
+
+    fn look_up_variable(&self, name: &Token, expr: Rc<Expr>) -> Result<Object, LoxResult> {
+        if let Some(distance) = self.locals.borrow().get(&expr) {
+            self.environment
+                .borrow()
+                .borrow()
+                .get_at(*distance, &name.as_string())
+        } else {
+            self.globals.borrow().get(name)
+        }
 }
 
 /*#[cfg(test)]

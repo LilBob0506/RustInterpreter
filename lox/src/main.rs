@@ -2,6 +2,7 @@
 use std::env::args;
 use std::io::{self, stdout, BufRead, Write};
 mod entities;
+use std::rc::Rc;
 
 mod callable;
 
@@ -24,9 +25,13 @@ mod stmt;
 //use stmt::*;
 
 //mod ast_printer;
+mod resolver;
+use resolver::*;
 
 mod errors;
 use errors::*;
+
+mod lox_function;
 
 static mut HAD_ERROR: bool = false;
 pub fn main() {
@@ -80,15 +85,22 @@ impl Lox {
     }
 
     fn run(&self, source: String) -> Result<(), LoxResult> {
+        if source == "@" {
+            self.interpreter.print_environment();
+            return Ok(());
+        }
         let mut scanner = Scanner::new(source);
-        let tokens = scanner.scan()?;
+        let tokens = scanner.scan_tokens()?;
         let mut parser = Parser::new(tokens);
         let statements = parser.parse()?;
 
-        if self.interpreter.interpret(&statements) {
-            Ok(())
-        } else {
-            Err(LoxResult::error(0, ""))
+        if parser.success() {
+            self.interpreter.interpret(&statements);
+            let resolver = Resolver::new(&self.interpreter);
+            let s = Rc::new(statements);
+            resolver.resolve(&Rc::clone(&s))?;
+            self.interpreter.interpret(&Rc::clone(&s));
         }
+        Ok(())
     }
 }

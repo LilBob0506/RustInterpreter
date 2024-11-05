@@ -14,29 +14,30 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()> {
         "Expr",
         &["errors", "entities", "rc"],
         &[
-            "Assign   : Token name, Box<Expr> value",
-            "Binary   : Box<Expr> left, Token operator, Box<Expr> right",
-            "Call     : Rc<Expr> callee, Token paren, Vec<Expr> arguments",
-            "Grouping : Box<Expr> expression",
+            "Assign   : Token name, Rc<Expr> value",
+            "Binary   : Rc<Expr> left, Token operator, Rc<Expr> right",
+            "Call     : Rc<Expr> callee, Token paren, Vec<Rc<Expr>> arguments",
+            "Grouping : Rc<Expr> expression",
             "Literal  : Option<LiteralValue> value",
-            "Logical  : Box<Expr> left, Token operator, Box<Expr> right",
-            "Unary    : Token operator, Box<Expr> right",
+            "Logical  : Rc<Expr> left, Token operator, Rc<Expr> right",
+            "Unary    : Token operator, Rc<Expr> right",
             "Variable : Token name",
         ],
     )?;
     define_ast(
         output_dir,
-        "Stmt",
-        &["errors", "expr", "entities"],
+        "stmt",
+        &["errors", "expr", "entities","rc"],
         &[
-            "Block      : Vec<Stmt> statements",
+            "Block      : Rc<Vec<Rc<Stmt>>> statements",
             "Break      : Token token",
-            "Expression : Expr expression",
-            "Function   : Token name, Vec<Token> params, Vec<Stmt> body",
-            "If         : Expr condition, Box<Stmt> then_branch, Option<Box<Stmt>> else_branch",
-            "Print      : Expr expression",
-            "Var        : Token name, Option<Expr> initializer",
-            "While      : Expr condition, Box<Stmt> body",
+            "Expression : Rc<Expr> expression",
+            "Function   : Token name, Rc<Vec<Token>> params, Rc<Vec<Rc<Stmt>>> body",
+            "If         : Rc<Expr> condition, Rc<Stmt> then_branch, Option<Rc<Stmt>> else_branch",
+            "Print      : Rc<Expr> expression",
+            "Return     : Token keyword, Option<Rc<Expr>> value",
+            "Var        : Token name, Option<Rc<Expr>> initializer",
+            "While      : Rc<Expr> condition, Rc<Stmt> body",
         ],
     )?;
     Ok(())
@@ -53,7 +54,11 @@ fn define_ast(
     let mut tree_types = Vec::new();
 
     for i in imports {
-        writeln!(file, "use crate::{}::*;", i)?;
+        if i == &"rc" {
+            writeln!(file, "use std::rc::Rc;")?;
+        } else {
+            writeln!(file, "use crate::{}::*;", i)?;
+        }
     }
 
     for ttype in types {
@@ -74,17 +79,47 @@ fn define_ast(
 
     writeln!(file, "\npub enum {base_name} {{")?;
     for t in &tree_types {
-        writeln!(file, "    {}({}),", t.base_class_name, t.class_name)?;
+        writeln!(file, "    {}(Rc<{}>),", t.base_class_name, t.class_name)?;
     }
     writeln!(file, "}}\n")?;
 
+    writeln!(file, "impl PartialEq for {} {{", base_name)?;
+    writeln!(file, "    fn eq(&self, other: &Self) -> bool {{")?;
+    writeln!(file, "        match (self, other) {{")?;
+    for t in &tree_types {
+        writeln!(
+            file,
+            "            ({0}::{1}(a), {0}::{1}(b)) => Rc::ptr_eq(a, b),",
+            base_name, t.base_class_name
+        )?;
+    }
+    writeln!(file, "            _ => false,")?;
+    writeln!(file, "        }}")?;
+    writeln!(file, "    }}")?;
+    writeln!(file, "}}\n\nimpl Eq for {}{{}}\n", base_name)?;
+
+    writeln!(file, "use std::hash::{{Hash, Hasher}};")?;
+    writeln!(file, "impl Hash for {} {{", base_name)?;
+    writeln!(file, "    fn hash<H>(&self, hasher: &mut H)")?;
+    writeln!(file, "    where H: Hasher,")?;
+    writeln!(file, "    {{ match self {{ ")?;
+    for t in &tree_types {
+        writeln!(
+            file,
+            "        {}::{}(a) => {{ hasher.write_usize(Rc::as_ptr(a) as usize); }}",
+            base_name, t.base_class_name
+        )?;
+    }
+    writeln!(file, "        }}\n    }}\n}}\n")?;
+
     writeln!(file, "impl {} {{", base_name)?;
-    writeln!(file, "    pub fn accept<T>(&self, {}_visitor: &dyn {base_name}Visitor<T>) -> Result<T, LoxResult> {{", base_name.to_lowercase())?;
+
+    writeln!(file, "    pub fn accept<T>(&self, wrapper: Rc<{}>, {}_visitor: &dyn {base_name}Visitor<T>) -> Result<T, LoxResult> {{", base_name, base_name.to_lowercase())?;
     writeln!(file, "        match self {{")?;
     for t in &tree_types {
         writeln!(
             file,
-            "            {}::{}(v) => v.accept({}_visitor),",
+            "            {0}::{1}(v) => {3}_visitor.visit_{2}_{3}(wrapper, v),",
             base_name,
             t.base_class_name,
             base_name.to_lowercase()
@@ -106,15 +141,16 @@ fn define_ast(
     for t in &tree_types {
         writeln!(
             file,
-            "    fn visit_{}_{}(&self, expr: &{}) -> Result<T, LoxResult>;",
+            "    fn visit_{0}_{1}(&self, wrapper: Rc<{3}>, {1}: &{2}) -> Result<T, LoxResult>;",
             t.base_class_name.to_lowercase(),
             base_name.to_lowercase(),
-            t.class_name
+            t.class_name,
+            base_name
         )?;
     }
     writeln!(file, "}}\n")?;
 
-    for t in &tree_types {
+    /*for t in &tree_types {
         writeln!(file, "impl {} {{", t.class_name)?;
         writeln!(
             file,
@@ -129,6 +165,6 @@ fn define_ast(
         )?;
         writeln!(file, "    }}")?;
         writeln!(file, "}}\n")?;
-    }
+    }*/
     Ok(())
 }
