@@ -49,6 +49,13 @@ impl LoxResult {
         err.report("");
         err
     }
+    pub fn system_error(message: &str) -> LoxResult {
+        let err = LoxResult::SystemError {
+            message: message.to_string(),
+        };
+        err.report("");
+        err
+    }
 
     fn report(&self, loc: &str) {
         match self {
@@ -66,8 +73,7 @@ impl LoxResult {
             LoxResult::SystemError { message } => {
                 eprint!("System Error: {message}");
             }
-            LoxResult::Break => {}
-            LoxResult::ReturnValue { value } => todo!(),
+            LoxResult::Break | LoxResult::ReturnValue { .. } => {}
         };
     }
 }

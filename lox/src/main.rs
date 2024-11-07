@@ -90,16 +90,17 @@ impl Lox {
             return Ok(());
         }
         let mut scanner = Scanner::new(source);
-        let tokens = scanner.scan_tokens()?;
+        let tokens = scanner.scan()?;
         let mut parser = Parser::new(tokens);
         let statements = parser.parse()?;
 
         if parser.success() {
-            self.interpreter.interpret(&statements);
             let resolver = Resolver::new(&self.interpreter);
             let s = Rc::new(statements);
             resolver.resolve(&Rc::clone(&s))?;
-            self.interpreter.interpret(&Rc::clone(&s));
+            if resolver.success() {
+                self.interpreter.interpret(&Rc::clone(&s));
+            }
         }
         Ok(())
     }

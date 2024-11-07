@@ -4,14 +4,12 @@ use std::rc::Rc;
 use std::collections::HashMap;
 use std::ops::Deref;
 
-use crate::callable::Callable;
-use crate::callable::LoxCallable;
+use crate::callable::*;
 use crate::entities::*;
 use crate::environment::*;
 use crate::errors::*;
 use crate::expr::*;
-use crate::lox_function::LoxFunction;
-use crate::stmt;
+use crate::lox_function::*;
 use crate::stmt::*;
 //use crate::lox_function::*;
 #[derive()]
@@ -24,24 +22,6 @@ pub struct Interpreter {
 }
 
 impl StmtVisitor<()> for Interpreter {
-    fn visit_return_stmt(&self, _: Rc<Stmt>, stmt: &ReturnStmt) -> Result<(), LoxResult> {
-        if let Some(value) = &stmt.value.clone() {
-            Err(LoxResult::return_value(self.evaluate(value)?))
-        } else {
-            Err(LoxResult::return_value(LiteralValue::Nil))
-        }
-    }
-
-    fn visit_function_stmt(&self, _: &Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
-        let function = LoxFunction::new(stmt, self.environment.borrow().deref());
-        self.environment.borrow().borrow_mut().define(
-            &stmt.name.as_string(),
-            LiteralValue::Func(Callable {
-                func: Rc::new(function),
-            }),
-        );
-        Ok(())
-    }
     fn visit_break_stmt(&self, _: Rc<Stmt>, stmt: &BreakStmt) -> Result<(), LoxResult> {
         if *self.nest.borrow() == 0 {
             Err(LoxResult::runtime_error(
@@ -54,8 +34,8 @@ impl StmtVisitor<()> for Interpreter {
     }
     fn visit_while_stmt(&self, _: Rc<Stmt>, stmt: &WhileStmt) -> Result<(), LoxResult> {
         *self.nest.borrow_mut() += 1;
-        while self.is_truthy(&self.evaluate(&stmt.condition.clone())?) {
-            match self.execute(&stmt.body.clone()) {
+        while self.is_truthy(&self.evaluate(stmt.condition.clone())?) {
+            match self.execute(stmt.body.clone()) {
                 Err(LoxResult::Break) => break,
                 Err(e) => return Err(e),
                 Ok(_) => {}
@@ -64,8 +44,8 @@ impl StmtVisitor<()> for Interpreter {
         *self.nest.borrow_mut() -= 1;
         Ok(())
     }
-    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxResult> {
-        self.evaluate(&stmt.expression.clone())?;
+    fn visit_expression_stmt(&self, _: Rc<Stmt>, stmt: &ExpressionStmt) -> Result<(), LoxResult> {
+        self.evaluate(stmt.expression.clone())?;
         Ok(())
     }
     fn visit_print_stmt(&self, _: Rc<Stmt>, stmt: &PrintStmt) -> Result<(), LoxResult> {
@@ -84,7 +64,7 @@ impl StmtVisitor<()> for Interpreter {
         }
     }
 
-    fn visit_block_stmt(&self, stmt: &BlockStmt) -> Result<(), LoxResult> {
+    fn visit_block_stmt(&self, _: Rc<Stmt>, stmt: &BlockStmt) -> Result<(), LoxResult> {
         let e = Environment::new_with_enclosing(self.environment.borrow().clone());
         self.execute_block(&stmt.statements, e)
     }
@@ -93,27 +73,30 @@ impl StmtVisitor<()> for Interpreter {
         let value = if let Some(initializer) = stmt.initializer.clone() {
             self.evaluate(initializer)?
         } else {
-            Object::Nil
+            LiteralValue::Nil
         };
 
         self.environment
             .borrow()
             .borrow_mut()
-            .define(stmt.name.as_string(), value);
+            .define(&stmt.name.as_string(), value);
         Ok(())
     }
 
     
-    fn visit_function_stmt(&self, expr: &FunctionStmt) -> Result<(), LoxResult> {
+    fn visit_function_stmt(&self, _: Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
         let function = LoxFunction::new(stmt, &self.environment.borrow());
         self.environment.borrow().borrow_mut().define(
-            stmt.name.as_string(), 
-            LiteralValue::Func(Rc::new(function)));
+            &stmt.name.as_string(), 
+            LiteralValue::Func(Callable {
+                func: Rc::new(function),
+            }),
+        );
         Ok(())
     }
     
-    fn visit_return_stmt(&self, expr: &ReturnStmt) -> Result<(), LoxResult> {
-        if let Some(value) = &stmt.value {
+    fn visit_return_stmt(&self, _: Rc<Stmt>, stmt: &ReturnStmt) -> Result<(), LoxResult> {
+        if let Some(value) = stmt.value.clone() {
             Err(LoxResult::return_value(self.evaluate(value)?))
         } else {
             Err(LoxResult::return_value(LiteralValue::Nil))
@@ -123,15 +106,15 @@ impl StmtVisitor<()> for Interpreter {
 
 impl ExprVisitor<LiteralValue> for Interpreter {
 
-    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<LiteralValue, LoxResult> {
+    fn visit_literal_expr(&self, _: Rc<Expr>, expr: &LiteralExpr) -> Result<LiteralValue, LoxResult> {
         Ok(expr.value.clone().unwrap())
     }
-    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<LiteralValue, LoxResult> {
-        Ok(self.evaluate(&expr.expression)?)
+    fn visit_grouping_expr(&self, _: Rc<Expr>, expr: &GroupingExpr) -> Result<LiteralValue, LoxResult> {
+        self.evaluate(expr.expression.clone())
     }
-    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<LiteralValue, LoxResult> {
-        let left = self.evaluate(&expr.left)?;
-        let right = self.evaluate(&expr.right)?;
+    fn visit_binary_expr(&self, _: Rc<Expr>, expr: &BinaryExpr) -> Result<LiteralValue, LoxResult> {
+        let left = self.evaluate(expr.left.clone())?;
+        let right = self.evaluate(expr.right.clone())?;
         let op = expr.operator.token_type();
 
         let result = match (left, right) {
@@ -192,8 +175,8 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             Ok(result)
         }
     }
-    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<LiteralValue, LoxResult> {
-        let right = self.evaluate(&expr.right)?;
+    fn visit_unary_expr(&self, _: Rc<Expr>, expr: &UnaryExpr) -> Result<LiteralValue, LoxResult> {
+        let right = self.evaluate(expr.right.clone())?;
         match expr.operator.token_type() {
             TokenType::MINUS => match right {
                 LiteralValue::Num(n) => return Ok(LiteralValue::Num(-n)),
@@ -211,13 +194,13 @@ impl ExprVisitor<LiteralValue> for Interpreter {
         &self,
         wrapper: Rc<Expr>,
         expr: &VariableExpr,
-    ) -> Result<Object, LoxResult> {
+    ) -> Result<LiteralValue, LoxResult> {
         // self.environment.borrow().borrow().get(&expr.name)
         self.look_up_variable(&expr.name, wrapper)
     }
-    }
+    
     fn visit_logical_expr(&self, _: Rc<Expr>, expr: &LogicalExpr) -> Result<LiteralValue, LoxResult> {
-        let left = self.evaluate(&expr.left.clone())?;
+        let left = self.evaluate(expr.left.clone())?;
 
         if expr.operator.is(TokenType::OR) {
             if self.is_truthy(&left) {
@@ -227,11 +210,11 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             return Ok(left);
         }
 
-        self.evaluate(&expr.right)
+        self.evaluate(expr.right.clone())
     }
 
-    fn visit_assign_expr(&self, wrapper: Rc<Expr>,expr: &AssignExpr) -> Result<LiteralValue, LoxResult> {
-        let value = self.evaluate(&expr.value)?;
+    fn visit_assign_expr(&self, wrapper: Rc<Expr>, expr: &AssignExpr) -> Result<LiteralValue, LoxResult> {
+        let value = self.evaluate(expr.value.clone())?;
         if let Some(distance) = self.locals.borrow().get(&wrapper) {
             self.environment.borrow().borrow_mut().assign_at(
                 *distance,
@@ -246,11 +229,11 @@ impl ExprVisitor<LiteralValue> for Interpreter {
         Ok(value)
     }
     
-    fn visit_call_expr(&self, expr: &CallExpr) -> Result<LiteralValue, LoxResult> {
-        let callee = self.evaluate(&expr.callee.clone())?;
+    fn visit_call_expr(&self, _: Rc<Expr>, expr: &CallExpr) -> Result<LiteralValue, LoxResult> {
+        let callee = self.evaluate(expr.callee.clone())?;
 
         let mut arguments = Vec::new();
-        for argument in &expr.arguments.clone() {
+        for argument in expr.arguments.clone() {
             arguments.push(self.evaluate(argument)?);
         }
 
@@ -266,14 +249,13 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
     }
+}
 impl Interpreter {
     pub fn new() -> Interpreter {
         let globals = Rc::new(RefCell::new(Environment::new()));
 
         globals.borrow_mut().define("clock", LiteralValue::Func(Callable {
-            "clock",
             func: Rc::new(NativeClock {}),
-            arity: 0,
         }));
 
         Interpreter {
@@ -284,24 +266,24 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, LoxResult> {
-        expr.accept(self)
+    fn evaluate(&self, expr: Rc<Expr>) -> Result<LiteralValue, LoxResult> {
+        expr.accept(expr.clone(), self)
     }
 
-    fn execute(&self, stmt: &Stmt) -> Result<(), LoxResult> {
-        stmt.accept(self)
+    fn execute(&self, stmt: Rc<Stmt>) -> Result<(), LoxResult> {
+        stmt.accept(stmt.clone(), self)
     }
 
     pub fn execute_block(
         &self,
-        statements: &[Stmt],
+        statements: &Rc<Vec<Rc<Stmt>>>,
         environment: Environment,
     ) -> Result<(), LoxResult> {
         let previous = self.environment.replace(Rc::new(RefCell::new(environment)));
 
         let result = statements
             .iter()
-            .try_for_each(|statement| self.execute(statement));
+            .try_for_each(|statement| self.execute(statement.clone()));
 
         self.environment.replace(previous);
 
@@ -312,11 +294,11 @@ impl Interpreter {
     fn is_truthy(&self, literal_value: &LiteralValue) -> bool {
         !matches!(literal_value, LiteralValue::Nil | LiteralValue::Bool(false))
     }
-    pub fn interpret(&self, statements: &[Stmt]) -> bool {
+    pub fn interpret(&self, statements: &[Rc<Stmt>]) -> bool {
         let mut success = true;
         *self.nest.borrow_mut() = 0;
         for statement in statements {
-            if let Err(e) = self.execute(statement) {
+            if self.execute(statement.clone()).is_err() {
                 success = false;
                 break;
             }
@@ -330,7 +312,7 @@ impl Interpreter {
         self.locals.borrow_mut().insert(expr, depth);
     }
 
-    fn look_up_variable(&self, name: &Token, expr: Rc<Expr>) -> Result<Object, LoxResult> {
+    fn look_up_variable(&self, name: &Token, expr: Rc<Expr>) -> Result<LiteralValue, LoxResult> {
         if let Some(distance) = self.locals.borrow().get(&expr) {
             self.environment
                 .borrow()

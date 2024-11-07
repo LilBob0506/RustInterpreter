@@ -1,8 +1,9 @@
 use core::fmt;
-use std::{cmp::*, time::SystemTime};
+use std::rc::Rc;
+use std::time::SystemTime;
 //use std::ops::*;
 
-use crate::{callable::*, interpreter::*, LoxResult};
+use crate::{callable::*, interpreter::*, LoxResult,environment::*};
 
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
@@ -109,8 +110,8 @@ impl Token {
     pub fn token_type(&self) -> TokenType {
         self.token_type
     }
-    pub fn as_string(&self) -> &String {
-        &self.lexeme
+    pub fn as_string(&self) -> String {
+        self.lexeme.clone()
     }
     pub fn dup(&self) -> Token {
         Token {
@@ -189,9 +190,9 @@ impl From<bool> for LoxValue {
 pub struct NativeClock;
 
 impl LoxCallable for NativeClock {
-    fn call(&self, _interpreter: &Interpreter, _arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
+    fn call(&self, _terp: &Interpreter, _args: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(n) => Ok(LiteralValue::Num(n.as_millis()as f64)),
+            Ok(n) => Ok(LiteralValue::Num(n.as_millis() as f64)),
             Err(e) => Err(LoxResult::system_error(&format!(
                 "Clock returned invalid duration: {:?}",
                 e.duration()
