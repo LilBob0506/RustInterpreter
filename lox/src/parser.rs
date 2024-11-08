@@ -37,7 +37,9 @@ impl<'a> Parser<'a> {
     }
 
     fn declaration(&mut self) -> Result<Rc<Stmt>, LoxResult> {
-        let result = if self.is_match(&[TokenType::FUN]) {
+        let result = if self.is_match(&[TokenType::CLASS])  {
+            self.class_declaration()
+        } else if self.is_match(&[TokenType::FUN]) {
             self.function("function")
         } else if self.is_match(&[TokenType::VAR]) {
             self.var_declaration()
@@ -49,6 +51,23 @@ impl<'a> Parser<'a> {
             self.synchronize();
         }
         result
+    }
+
+    fn class_declaration(&mut self) -> Result<Rc<Stmt>, LoxResult> {
+        let name = self.consume(TokenType::IDENTIFIER, "Expect class name")?;
+        self.consume(TokenType::LEFT_BRACE, "Expect '{' before class body")?;
+
+        let mut methods = Vec::new();
+        while !self.check(TokenType::RIGHT_BRACE) && !self.is_at_end() {
+            methods.push(self.function("method")?);
+        }
+
+        self.consume(TokenType::RIGHT_BRACE, "Expect '}' after class body")?;
+
+        Ok(Rc::new(Stmt::Class(Rc::new(ClassStmt {
+            name, 
+            methods: Rc::new(methods)
+        }))))
     }
 
     fn statement(&mut self) -> Result<Rc<Stmt>, LoxResult> {

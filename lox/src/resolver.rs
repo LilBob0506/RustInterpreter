@@ -82,6 +82,12 @@ impl<'a> StmtVisitor<()> for Resolver<'a> {
         self.define(&stmt.name);
         Ok(())
     }
+    
+    fn visit_class_stmt(&self, wrapper: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
+        self.declare(&stmt.name);
+        self.define(&stmt.name);
+        Ok(())
+    }
 }
 
 impl<'a> ExprVisitor<()> for Resolver<'a> {

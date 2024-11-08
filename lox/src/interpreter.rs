@@ -1,9 +1,11 @@
 //use std::borrow::Borrow;
 use std::cell::RefCell;
+use std::fmt::format;
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::ops::Deref;
 
+use crate::lox_class::*;
 use crate::callable::*;
 use crate::entities::*;
 use crate::environment::*;
@@ -101,6 +103,17 @@ impl StmtVisitor<()> for Interpreter {
         } else {
             Err(LoxResult::return_value(LiteralValue::Nil))
         }
+    }
+    
+    fn visit_class_stmt(&self, wrapper: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
+        self.environment.borrow().borrow_mut().define(&stmt.name.as_string(), LiteralValue::Nil);
+
+
+        let klass = LiteralValue::Class(LoxClass::new(&stmt.name.as_string()).into());
+
+        self.environment.borrow().borrow_mut().assign(&stmt.name, klass)?;
+
+        Ok(())
     }
 }
 
@@ -245,6 +258,17 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 ));
             }
             function.func.call(self, arguments)
+        }  else if let LiteralValue::Class(class) = callee {
+            if arguments.len() != klass.arity() {
+                return Err(LoxResult::RuntimeError (
+                    &expr.paren,
+                    &format(
+                    "Expected {} arguments but got {}.", 
+                        klass.arity(), 
+                        arguments.len()
+                    ),
+                ));
+            }
         } else {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
