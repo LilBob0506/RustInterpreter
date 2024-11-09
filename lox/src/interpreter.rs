@@ -2,8 +2,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::HashMap;
-use std::ops::Deref;
-
+use crate::lox_class::*;
 use crate::callable::*;
 use crate::entities::*;
 use crate::environment::*;
@@ -101,6 +100,17 @@ impl StmtVisitor<()> for Interpreter {
         } else {
             Err(LoxResult::return_value(LiteralValue::Nil))
         }
+    }
+    
+    fn visit_class_stmt(&self, _: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
+        self.environment.borrow().borrow_mut().define(&stmt.name.as_string(), LiteralValue::Nil);
+
+
+        let klass = LiteralValue::Class(LoxClass::new(&stmt.name.as_string()).into());
+
+        self.environment.borrow().borrow_mut().assign(&stmt.name, klass)?;
+
+        Ok(())
     }
 }
 
@@ -245,8 +255,43 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 ));
             }
             function.func.call(self, arguments)
+        }  else if let LiteralValue::Class(klass) = callee {
+            if arguments.len() != klass.arity() {
+                return Err(LoxResult::runtime_error (
+                    &expr.paren,
+                    &format!(
+                        "Expected {} arguments but got {}.", 
+                        klass.arity(), 
+                        arguments.len(),
+                    ),
+                ));
+            }
+            klass.instantiate(self, arguments, Rc::clone(&klass)) 
         } else {
             Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
+        }
+    }
+    
+    fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<LiteralValue, LoxResult> {
+        let literalvalue = self.evaluate(expr.literalvalue.clone())?;
+        if let LiteralValue::Instance(inst) = literalvalue {
+            Ok(inst.get(&expr.name)?)
+        } else {
+            Err(LoxResult::runtime_error(&expr.name, "Only instances have properties"))
+        }
+    }
+    
+    fn visit_set_expr(&self, _: Rc<Expr>, expr: &SetExpr) -> Result<LiteralValue, LoxResult> {
+        let literalvalue = self.evaluate(expr.literalvalue.clone())?;
+        if let LiteralValue::Instance(inst) = literalvalue {
+            let value = self.evaluate(expr.value.clone())?;
+            inst.set(&expr.name, value.clone());
+            Ok(value)
+        } else {
+            Err(LoxResult::runtime_error(
+                &expr.name,
+                 "Only instances have fields",
+            ))
         }
     }
 }

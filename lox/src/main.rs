@@ -4,6 +4,9 @@ use std::io::{self, stdout, BufRead, Write};
 mod entities;
 use std::rc::Rc;
 
+mod lox_instance;
+mod lox_class;
+
 mod callable;
 mod lox_function;
 
