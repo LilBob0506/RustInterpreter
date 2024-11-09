@@ -16,27 +16,30 @@ impl LoxClass {
         }
     }
 
+    pub fn instantiate(
+        &self, 
+        _interpreter: &Interpreter, 
+        _arguments: Vec<LiteralValue>, 
+        klass: Rc<LoxClass>) -> Result<LiteralValue, LoxResult> {
+            Ok(LiteralValue::Instance(LoxInstance::new(klass)))
+    }
+
     pub fn set_ref(&mut self, myref: Rc<LoxClass>) {
         self.myref = Some(myref)
     }
 }
 
-/* 
 impl std::string::ToString for LoxClass {
     fn to_string(&self) -> String {
         self.name.clone()
     }
 }
-*/
 
 impl LoxCallable for LoxClass {
     fn call(&self, _interpreter: &Interpreter, _arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
-        Ok(LiteralValue::Instance(LoxInstance::new(Rc::new(self.clone()))))
+        todo!()
     }
     fn arity(&self) -> usize {
         0
-    }
-    fn to_string(&self) -> String {
-        self.name.clone()
     }
 }

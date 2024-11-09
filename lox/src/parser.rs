@@ -301,6 +301,12 @@ impl<'a> Parser<'a> {
                     name: expr.name.dup(),
                     value: Rc::new(value),
                 })));
+            } else if let Expr::Get(get) = expr {
+                return Ok(Expr::Set(Rc::new(SetExpr {
+                    literalvalue: Rc::clone(&get.literalvalue),
+                    name: get.name.dup(),
+                    value: Rc::new(value),
+                })))
             }
 
             self.error(&equals, "Invalid assignment target.");
@@ -438,6 +444,9 @@ impl<'a> Parser<'a> {
         loop {
             if self.is_match(&[TokenType::LEFT_PAREN]) {
                 expr = self.finish_call(&Rc::new(expr))?;
+            } else if self.is_match(&[TokenType::DOT]) {
+                let name = self.consume(TokenType:: IDENTIFIER, "Expect property name after  '.' .")?;
+                expr = Expr::Get(Rc::new(GetExpr { literalvalue: Rc::new(expr), name }))
             } else {
                 break;
             }

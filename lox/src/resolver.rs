@@ -1,4 +1,3 @@
-use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -83,7 +82,7 @@ impl<'a> StmtVisitor<()> for Resolver<'a> {
         Ok(())
     }
     
-    fn visit_class_stmt(&self, wrapper: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
+    fn visit_class_stmt(&self, _: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
         self.declare(&stmt.name);
         self.define(&stmt.name);
         Ok(())
@@ -147,6 +146,17 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
             self.resolve_local(wrapper, &expr.name);
             Ok(())
         }
+    }
+    
+    fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<(), LoxResult> {
+        self.resolve_expr(expr.literalvalue.clone());
+        Ok(())
+    }
+    
+    fn visit_set_expr(&self, _: Rc<Expr>, expr: &SetExpr) -> Result<(), LoxResult> {
+        self.resolve_expr(expr.value.clone())?;
+        self.resolve_expr(expr.literalvalue.clone())?;
+        Ok(())
     }
 }
 

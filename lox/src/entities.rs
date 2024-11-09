@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::time::SystemTime;
 //use std::ops::*;
 
-use crate::{callable::*, environment::*, interpreter::*, lox_class::LoxClass, lox_instance::LoxInstance, LoxResult};
+use crate::{callable::*, interpreter::*, lox_class::LoxClass, lox_instance::LoxInstance, LoxResult};
 
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
@@ -80,7 +80,7 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Bool(false) => write!(f, "false"),
             LiteralValue::Func(_) => write!(f, "<func>"),
             LiteralValue::Class(c) => write!(f, "<Class {}>", c.to_string()),
-            LiteralValue::Instance(i) => write!(f, "<Instance of {}", i.klass.to_string()),
+            LiteralValue::Instance(i) => write!(f, "<Instance of {}", i.to_string()),
             &LiteralValue::ArithmeticError => panic!("Should not be trying to print this"),
         }
     }
@@ -206,10 +206,6 @@ impl LoxCallable for NativeClock {
 
     fn arity(&self) -> usize {
         0
-    }
-    
-    fn to_string(&self) -> String {
-        "Native:Clock".to_string()
     }
 }
 
