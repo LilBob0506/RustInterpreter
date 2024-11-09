@@ -16,7 +16,7 @@ impl LoxInstance {
         }
     }
 
-    pub fn get(&mut self, name: &Token) -> Result<LiteralValue, LoxResult> {
+    pub fn get(&self, name: &Token) -> Result<LiteralValue, LoxResult> {
         if let Entry::Occupied(o) = self.fields.borrow_mut().entry(name.as_string()) {
             Ok(o.get().clone())
         }
@@ -28,7 +28,7 @@ impl LoxInstance {
         }
     }
 
-    pub fn set(&mut self, name: &Token, value: LiteralValue) {
+    pub fn set(&self, name: &Token, value: LiteralValue) {
         println!("setting {:?} to {:?}", name, value);
         self.fields.borrow_mut().insert(name.as_string(), value);
     }

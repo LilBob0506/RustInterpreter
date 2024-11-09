@@ -274,7 +274,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
     
     fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<LiteralValue, LoxResult> {
         let literalvalue = self.evaluate(expr.literalvalue.clone())?;
-        if let LiteralValue::Instance(mut inst) = literalvalue {
+        if let LiteralValue::Instance(inst) = literalvalue {
             Ok(inst.get(&expr.name)?)
         } else {
             Err(LoxResult::runtime_error(&expr.name, "Only instances have properties"))
@@ -283,7 +283,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
     
     fn visit_set_expr(&self, _: Rc<Expr>, expr: &SetExpr) -> Result<LiteralValue, LoxResult> {
         let literalvalue = self.evaluate(expr.literalvalue.clone())?;
-        if let LiteralValue::Instance(mut inst) = literalvalue {
+        if let LiteralValue::Instance(inst) = literalvalue {
             let value = self.evaluate(expr.value.clone())?;
             inst.set(&expr.name, value.clone());
             Ok(value)

@@ -21,7 +21,7 @@ impl LoxClass {
         _interpreter: &Interpreter, 
         _arguments: Vec<LiteralValue>, 
         klass: Rc<LoxClass>) -> Result<LiteralValue, LoxResult> {
-            Ok(LiteralValue::Instance(LoxInstance::new(klass)))
+            Ok(LiteralValue::Instance(Rc::new(LoxInstance::new(klass))))
     }
 
     pub fn set_ref(&mut self, myref: Rc<LoxClass>) {
