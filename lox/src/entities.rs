@@ -4,8 +4,9 @@ use std::time::SystemTime;
 //use std::ops::*;
 
 use crate::{callable::*, interpreter::*, lox_class::LoxClass, lox_instance::LoxInstance, LoxResult};
-
+use crate::lox_function::*;
 use std::fmt::Display;
+use crate::lox_class::*;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
@@ -64,9 +65,10 @@ pub enum LiteralValue {
     Num(f64),
     Str(String),
     Bool(bool),
-    Func(Callable),
+    Func(Rc<LoxFunction>),
     Class(Rc<LoxClass>),
     Instance(Rc<LoxInstance>),
+    Native(Rc<LoxNative>),
     Nil,
     ArithmeticError,
 }
@@ -78,9 +80,10 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::Bool(true) => write!(f, "true"),
             LiteralValue::Bool(false) => write!(f, "false"),
-            LiteralValue::Func(_) => write!(f, "<func>"),
-            LiteralValue::Class(c) => write!(f, "<Class {}>", c.to_string()),
-            LiteralValue::Instance(i) => write!(f, "<Instance of {}", i.to_string()),
+            LiteralValue::Func(func) => write!(f, "{}", func),
+            LiteralValue::Class(c) => write!(f, "{}", c),
+            LiteralValue::Native(n) => write!(f, "{n}"),
+            LiteralValue::Instance(i) => write!(f, "<Instance of {}", i),
             &LiteralValue::ArithmeticError => panic!("Should not be trying to print this"),
         }
     }
@@ -190,11 +193,37 @@ impl From<bool> for LoxValue {
         LoxValue::Boolean(value)
     }
 }
-
+#[derive(Clone)]
+pub struct LoxNative {
+    pub func: Rc<dyn LoxCallable>,
+}
+impl PartialEq for LoxNative {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(
+            Rc::as_ptr(&self.func) as *const (),
+            Rc::as_ptr(&other.func) as *const (),
+        )
+    }
+}
+impl fmt::Debug for LoxNative {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Native-Function>")
+    }
+}
+impl fmt::Display for LoxNative {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Native-Function>")
+    }
+}
 pub struct NativeClock;
 
 impl LoxCallable for NativeClock {
-    fn call(&self, _terp: &Interpreter, _args: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
+    fn call(
+        &self,
+        _terp: &Interpreter,
+        _args: Vec<LiteralValue>,
+        _klass: Option<Rc<LoxClass>>,
+    ) -> Result<LiteralValue, LoxResult> {
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             Ok(n) => Ok(LiteralValue::Num(n.as_millis() as f64)),
             Err(e) => Err(LoxResult::system_error(&format!(

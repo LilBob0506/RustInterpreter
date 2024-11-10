@@ -477,7 +477,11 @@ impl<'a> Parser<'a> {
                 value: self.previous().literal.clone(),
             })));
         }
-
+        if self.is_match(&[TokenType::THIS]) {
+            return Ok(Expr::This(Rc::new(ThisExpr {
+                keyword: self.previous().dup(),
+            })));
+        }
         if self.is_match(&[TokenType::IDENTIFIER]) {
             return Ok(Expr::Variable(Rc::new(VariableExpr {
                 name: self.previous().clone(),

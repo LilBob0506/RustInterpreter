@@ -1,45 +1,70 @@
 use std::rc::Rc;
+use std::collections::HashMap;
+use std::fmt;
 
 use crate::{callable::LoxCallable, entities::LiteralValue, lox_instance::LoxInstance, Interpreter, LoxResult};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoxClass {
     name: String,
-    myref: Option<Rc<LoxClass>>
+    methods: HashMap<String, LiteralValue>,
 }
 
 impl LoxClass {
-    pub fn new(name: &String) -> Self {
+    pub fn new(name: &str, methods: HashMap<String, LiteralValue>) -> Self {
         Self {
-            name: name.clone(),
-            myref: None,
+            name: name.to_string(),
+            methods,
         }
     }
 
     pub fn instantiate(
-        &self, 
-        _interpreter: &Interpreter, 
-        _arguments: Vec<LiteralValue>, 
-        klass: Rc<LoxClass>) -> Result<LiteralValue, LoxResult> {
-            Ok(LiteralValue::Instance(Rc::new(LoxInstance::new(klass))))
+        &self,
+        interpreter: &Interpreter,
+        arguments: Vec<LiteralValue>,
+        klass: Rc<LoxClass>,
+    ) -> Result<LiteralValue, LoxResult> {
+        let instance = LiteralValue::Instance(Rc::new(LoxInstance::new(klass)));
+        if let Some(LiteralValue::Func(initializer)) = self.find_method("init") {
+            if let LiteralValue::Func(init) = initializer.bind(&instance) {
+                init.call(interpreter, arguments,None)?;
+            }
+        }
+        Ok(instance)
     }
 
-    pub fn set_ref(&mut self, myref: Rc<LoxClass>) {
-        self.myref = Some(myref)
+
+    pub fn find_method(&self, name: &str) -> Option<LiteralValue> {
+        self.methods.get(name).cloned()
     }
 }
 
-impl std::string::ToString for LoxClass {
-    fn to_string(&self) -> String {
-        self.name.clone()
+impl fmt::Display for LoxClass {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let methods = self
+            .methods
+            .keys()
+            .cloned()
+            .collect::<Vec<String>>()
+            .join(", ");
+        write!(f, "<Class {} {{ {methods} }}>", self.name)
     }
 }
 
 impl LoxCallable for LoxClass {
-    fn call(&self, _interpreter: &Interpreter, _arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
-        todo!()
+    fn call(
+        &self,
+        interpreter: &Interpreter,
+        arguments: Vec<LiteralValue>,
+        klass: Option<Rc<LoxClass>>,
+    ) -> Result<LiteralValue, LoxResult> {
+        self.instantiate(interpreter, arguments, klass.unwrap())
     }
     fn arity(&self) -> usize {
-        0
+        if let Some(LiteralValue::Func(initializer)) = self.find_method("init") {
+            initializer.arity()
+        } else {
+            0
+        }
     }
 }

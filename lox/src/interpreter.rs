@@ -2,6 +2,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::HashMap;
+use std::ops::Deref;
+
 use crate::lox_class::*;
 use crate::callable::*;
 use crate::entities::*;
@@ -21,18 +23,10 @@ pub struct Interpreter {
 }
 
 impl StmtVisitor<()> for Interpreter {
-    fn visit_break_stmt(&self, _: Rc<Stmt>, stmt: &BreakStmt) -> Result<(), LoxResult> {
-        if *self.nest.borrow() == 0 {
-            Err(LoxResult::runtime_error(
-                &stmt.token,
-                "break outside of while/for loop",
-            ))
-        } else {
-            Err(LoxResult::Break)
-        }
+    fn visit_break_stmt(&self, _: Rc<Stmt>, _stmt: &BreakStmt) -> Result<(), LoxResult> {
+        Err(LoxResult::Break)
     }
     fn visit_while_stmt(&self, _: Rc<Stmt>, stmt: &WhileStmt) -> Result<(), LoxResult> {
-        *self.nest.borrow_mut() += 1;
         while self.is_truthy(&self.evaluate(stmt.condition.clone())?) {
             match self.execute(stmt.body.clone()) {
                 Err(LoxResult::Break) => break,
@@ -40,7 +34,7 @@ impl StmtVisitor<()> for Interpreter {
                 Ok(_) => {}
             }
         }
-        *self.nest.borrow_mut() -= 1;
+
         Ok(())
     }
     fn visit_expression_stmt(&self, _: Rc<Stmt>, stmt: &ExpressionStmt) -> Result<(), LoxResult> {
@@ -84,13 +78,11 @@ impl StmtVisitor<()> for Interpreter {
 
     
     fn visit_function_stmt(&self, _: Rc<Stmt>, stmt: &FunctionStmt) -> Result<(), LoxResult> {
-        let function = LoxFunction::new(stmt, &self.environment.borrow());
-        self.environment.borrow().borrow_mut().define(
-            &stmt.name.as_string(), 
-            LiteralValue::Func(Callable {
-                func: Rc::new(function),
-            }),
-        );
+        let function = LoxFunction::new(stmt, self.environment.borrow().deref(), false);
+        self.environment
+        .borrow()
+        .borrow_mut()
+        .define(&stmt.name.as_string(), LiteralValue::Func(Rc::new(function)));
         Ok(())
     }
     
@@ -103,18 +95,39 @@ impl StmtVisitor<()> for Interpreter {
     }
     
     fn visit_class_stmt(&self, _: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
-        self.environment.borrow().borrow_mut().define(&stmt.name.as_string(), LiteralValue::Nil);
+        self.environment
+            .borrow()
+            .borrow_mut()
+            .define(&stmt.name.as_string(), LiteralValue::Nil);
 
+        let mut methods = HashMap::new();
+        for method in stmt.methods.deref() {
+            if let Stmt::Function(func) = method.deref() {
+                 let is_init = func.name.as_string() == "init";
+                let function = LiteralValue::Func(Rc::new(LoxFunction::new(
+                    func,
+                    &self.environment.borrow(),
+                    is_init,
+                )));
+                methods.insert(func.name.as_string(), function);
+            } else {
+                panic!("non-function method in class");
+            };
+        }
 
-        let klass = LiteralValue::Class(LoxClass::new(&stmt.name.as_string()).into());
-
-        self.environment.borrow().borrow_mut().assign(&stmt.name, klass)?;
+        let klass = LiteralValue::Class(Rc::new(LoxClass::new(&stmt.name.as_string(), methods)));
+        self.environment
+            .borrow()
+            .borrow_mut()
+            .assign(&stmt.name, klass)?;
 
         Ok(())
     }
 }
-
 impl ExprVisitor<LiteralValue> for Interpreter {
+    fn visit_this_expr(&self, wrapper: Rc<Expr>, expr: &ThisExpr) -> Result<LiteralValue, LoxResult> {
+        self.look_up_variable(&expr.keyword, wrapper)
+    }
 
     fn visit_literal_expr(&self, _: Rc<Expr>, expr: &LiteralExpr) -> Result<LiteralValue, LoxResult> {
         Ok(expr.value.clone().unwrap())
@@ -247,35 +260,39 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             arguments.push(self.evaluate(argument)?);
         }
 
-        if let LiteralValue::Func(function) = callee {
-            if arguments.len() != function.func.arity() {
-                return Err(LoxResult::runtime_error(
-                    &expr.paren, 
-                    &format!("Expected {} arguments but got {}.", function.func.arity(), arguments.len()),
-                ));
+        let (callfunc, klass): (Option<Rc<dyn LoxCallable>>, Option<Rc<LoxClass>>) = match callee {
+            LiteralValue::Func(f) => (Some(f), None),
+            LiteralValue::Native(n) => (Some(n.func.clone()), None),
+            LiteralValue::Class(c) => {
+                let klass = Rc::clone(&c);
+                (Some(c), Some(klass))
             }
-            function.func.call(self, arguments)
-        }  else if let LiteralValue::Class(klass) = callee {
-            if arguments.len() != klass.arity() {
-                return Err(LoxResult::runtime_error (
+            _ => (None, None),
+        };
+        if let Some(callfunc) = callfunc {
+            if arguments.len() != callfunc.arity() {
+                return Err(LoxResult::runtime_error(
                     &expr.paren,
                     &format!(
-                        "Expected {} arguments but got {}.", 
-                        klass.arity(), 
-                        arguments.len(),
+                        "Expected {} arguments but got {}.",
+                        callfunc.arity(),
+                        arguments.len()
                     ),
                 ));
             }
-            klass.instantiate(self, arguments, Rc::clone(&klass)) 
+            callfunc.call(self, arguments, klass)
         } else {
-            Err(LoxResult::runtime_error(&expr.paren, "Can only call functions and classes."))
+            Err(LoxResult::runtime_error(
+                &expr.paren,
+                "Can only call functions and classes",
+            ))
         }
     }
     
     fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<LiteralValue, LoxResult> {
         let literalvalue = self.evaluate(expr.literalvalue.clone())?;
         if let LiteralValue::Instance(inst) = literalvalue {
-            Ok(inst.get(&expr.name)?)
+             Ok(inst.get(&expr.name, &inst)?)
         } else {
             Err(LoxResult::runtime_error(&expr.name, "Only instances have properties"))
         }
@@ -299,9 +316,12 @@ impl Interpreter {
     pub fn new() -> Interpreter {
         let globals = Rc::new(RefCell::new(Environment::new()));
 
-        globals.borrow_mut().define("clock", LiteralValue::Func(Callable {
-            func: Rc::new(NativeClock {}),
-        }));
+        globals.borrow_mut().define(
+            "clock",
+            LiteralValue::Native(Rc::new(LoxNative {
+                func: Rc::new(NativeClock {}),
+            })),
+        );
 
         Interpreter {
             globals: Rc::clone(&globals), 

@@ -5,6 +5,7 @@ use std::rc::Rc;
 use crate::errors::*;
 use crate::interpreter::*;
 use crate::entities::*;
+use crate::lox_class::*;
 
 #[derive(Clone)]
 pub struct Callable {
@@ -35,7 +36,12 @@ impl PartialEq for Callable {
 }
 
 pub trait LoxCallable {
-    fn call(&self, interpreter: &Interpreter, arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult>;
+    fn call(
+        &self,
+        interpreter: &Interpreter,
+        arguments: Vec<LiteralValue>,
+        klass: Option<Rc<LoxClass>>,
+    ) -> Result<LiteralValue, LoxResult>;
     fn arity(&self) -> usize;
     
 }

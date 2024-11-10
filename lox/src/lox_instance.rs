@@ -1,5 +1,5 @@
 use std::{cell::RefCell, collections::{hash_map::Entry, HashMap}, rc::Rc};
-
+use std::fmt;
 use crate::{entities::{LiteralValue, Token}, lox_class::LoxClass, LoxResult};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,26 +16,41 @@ impl LoxInstance {
         }
     }
 
-    pub fn get(&self, name: &Token) -> Result<LiteralValue, LoxResult> {
+    pub fn get(&self, name: &Token, this: &Rc<LoxInstance>) -> Result<LiteralValue, LoxResult> {
         if let Entry::Occupied(o) = self.fields.borrow_mut().entry(name.as_string()) {
             Ok(o.get().clone())
-        }
-        else {
+        } else if let Some(method) = self.klass.find_method(&name.as_string()) {
+            if let LiteralValue::Func(func) = method {
+                Ok(func.bind(&LiteralValue::Instance(Rc::clone(this))))
+            } else {
+                panic!("tried to bind 'this' to a non-function {method:?}");
+            }
+        } else {
             Err(LoxResult::runtime_error(
-                name, 
+                name,
                 &format!("Undefined property '{}'.", name.as_string()),
             ))
         }
     }
 
+
     pub fn set(&self, name: &Token, value: LiteralValue) {
-        println!("setting {:?} to {:?}", name, value);
         self.fields.borrow_mut().insert(name.as_string(), value);
     }
 }
 
-impl std::string::ToString for LoxInstance {
-    fn to_string(&self) -> String {
-        format!("<Instance of {}", self.klass.to_string())
+
+impl fmt::Display for LoxInstance {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut fields = Vec::new();
+        for (k, v) in self.fields.borrow().iter() {
+            fields.push(format!("{k}={v}"))
+        }
+        write!(
+            f,
+            "<Instance of {} {{ {} }}>",
+            self.klass,
+            fields.join(", ")
+        )
     }
 }
