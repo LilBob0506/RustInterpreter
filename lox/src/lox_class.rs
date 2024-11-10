@@ -8,13 +8,15 @@ use crate::{callable::LoxCallable, entities::LiteralValue, lox_instance::LoxInst
 pub struct LoxClass {
     name: String,
     methods: HashMap<String, LiteralValue>,
+    superclass: Option<Rc<LoxClass>>,
 }
 
 impl LoxClass {
-    pub fn new(name: &str, methods: HashMap<String, LiteralValue>) -> Self {
+    pub fn new(name: &str, superclass: Option<Rc<LoxClass>>, methods: HashMap<String, LiteralValue>) -> Self {
         Self {
             name: name.to_string(),
             methods,
+            superclass,
         }
     }
 
@@ -35,7 +37,16 @@ impl LoxClass {
 
 
     pub fn find_method(&self, name: &str) -> Option<LiteralValue> {
-        self.methods.get(name).cloned()
+        self.methods.get(name).cloned();
+
+        if let Some(method) = self.methods.get(name) {
+            Some(method.clone())
+        } else if let Some(superclass) = &self.superclass {
+            superclass.find_method(name)
+        } else {
+            None
+        }
+
     }
 }
 

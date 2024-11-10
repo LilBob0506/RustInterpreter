@@ -55,6 +55,15 @@ impl<'a> Parser<'a> {
 
     fn class_declaration(&mut self) -> Result<Rc<Stmt>, LoxResult> {
         let name = self.consume(TokenType::IDENTIFIER, "Expect class name")?;
+
+        let superclass = if self.is_match(&[TokenType::LESS]) {
+            self.consume(TokenType::IDENTIFIER, "Expect superclass name.")?;
+            Some(Rc::new(Expr::Variable(Rc::new(VariableExpr {
+                name: self.previous().dup(),
+            }))))
+        } else {
+            None
+        };
         self.consume(TokenType::LEFT_BRACE, "Expect '{' before class body")?;
 
         let mut methods = Vec::new();
@@ -66,7 +75,8 @@ impl<'a> Parser<'a> {
 
         Ok(Rc::new(Stmt::Class(Rc::new(ClassStmt {
             name, 
-            methods: Rc::new(methods)
+            superclass,
+            methods: Rc::new(methods),
         }))))
     }
 
@@ -471,11 +481,18 @@ impl<'a> Parser<'a> {
                 value: Some(LiteralValue::Nil),
             })));
         }
-
         if self.is_match(&[TokenType::NUMBER, TokenType::STRING]) {
             return Ok(Expr::Literal(Rc::new(LiteralExpr {
                 value: self.previous().literal.clone(),
             })));
+        }
+        if self.is_match(&[TokenType::SUPER]) {
+            let keyword = self.previous().dup();
+            self.consume(TokenType::DOT, "Expect '.' after 'super'.")?;
+            let method = self.consume(
+                TokenType::IDENTIFIER,
+                "Expect superclass method name")?;
+            return Ok(Expr::Super(Rc::new(SuperExpr { keyword, method } )));
         }
         if self.is_match(&[TokenType::THIS]) {
             return Ok(Expr::This(Rc::new(ThisExpr {

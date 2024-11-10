@@ -95,10 +95,35 @@ impl StmtVisitor<()> for Interpreter {
     }
     
     fn visit_class_stmt(&self, _: Rc<Stmt>, stmt: &ClassStmt) -> Result<(), LoxResult> {
+        let superclass = if let Some(superclass_expr) = &stmt.superclass {
+            let superclass = self.evaluate(superclass_expr.clone())?;
+
+            if let LiteralValue::Class(c) = superclass {
+                Some(c)
+            } else if let Expr::Variable(v) = superclass_expr.deref() {
+                return Err(LoxResult::runtime_error(
+                    &v.name,
+                    "Superclass must be a class",
+                ));
+            } else {
+                panic!();
+            }
+        } else {
+            None
+        };
+
         self.environment
             .borrow()
             .borrow_mut()
             .define(&stmt.name.as_string(), LiteralValue::Nil);
+
+        let enclosing = if let Some(ref s) = superclass {
+            let mut e = Environment::new_with_enclosing(self.environment.borrow().clone());
+            e.define("super", LiteralValue::Class(s.clone()));
+            Some(self.environment.replace(Rc::new(RefCell::new(e))))
+        } else {
+            None
+        };
 
         let mut methods = HashMap::new();
         for method in stmt.methods.deref() {
@@ -115,7 +140,16 @@ impl StmtVisitor<()> for Interpreter {
             };
         }
 
-        let klass = LiteralValue::Class(Rc::new(LoxClass::new(&stmt.name.as_string(), methods)));
+        let klass = LiteralValue::Class(Rc::new(LoxClass::new(
+            &stmt.name.as_string(), 
+            superclass, 
+            methods
+        )));
+
+        if let Some(previous) = enclosing {
+            self.environment.replace(previous);
+        }
+
         self.environment
             .borrow()
             .borrow_mut()
@@ -123,6 +157,7 @@ impl StmtVisitor<()> for Interpreter {
 
         Ok(())
     }
+
 }
 impl ExprVisitor<LiteralValue> for Interpreter {
     fn visit_this_expr(&self, wrapper: Rc<Expr>, expr: &ThisExpr) -> Result<LiteralValue, LoxResult> {
@@ -311,7 +346,49 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             ))
         }
     }
+    
+    fn visit_super_expr(&self, wrapper: Rc<Expr>, expr: &SuperExpr) -> Result<LiteralValue, LoxResult> {
+        let distance = *self.locals.borrow().get(&wrapper).unwrap();
+        let superclass = if let Some(sc) = self
+            .environment
+            .borrow()
+            .borrow()
+            .get_at(distance, "super")
+            .ok() {
+                if let LiteralValue::Class(superclass) = sc {
+                    superclass
+                } else {
+                    panic!();
+                }
+            } else {
+                panic!();
+            };
+
+        let literalvalue = self 
+            .environment
+            .borrow()
+            .borrow()
+            .get_at(distance - 1, "this")
+            .ok()
+            .unwrap();
+
+        if let Some(method) = superclass.find_method(&expr.method.as_string()) {
+            if let LiteralValue::Func(func) = method {
+                Ok(func.bind(&literalvalue))
+            } else {
+                panic!();
+            }
+        } else {
+            Err(LoxResult::runtime_error(
+            &expr.method,
+            &format!("Undefined property '{}'.", expr.method.as_string()),
+            ))
+        
+        }
+        
+    }
 }
+
 impl Interpreter {
     pub fn new() -> Interpreter {
         let globals = Rc::new(RefCell::new(Environment::new()));

@@ -22,6 +22,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()> {
             "Literal  : Option<LiteralValue> value",
             "Logical  : Rc<Expr> left, Token operator, Rc<Expr> right",
             "Set      : Rc<Expr> literalvalue, Token name, Rc<Expr> value",
+            "Super    : Token keyword, Token method",
             "This     : Token keyword",
             "Unary    : Token operator, Rc<Expr> right",
             "Variable : Token name",
@@ -33,7 +34,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()> {
         &["errors", "expr", "entities", "rc"],
         &[
             "Block      : Rc<Vec<Rc<Stmt>>> statements",
-            "Class      : Token name, Rc<Vec<Rc<Stmt>>> methods",
+            "Class      : Token name, Option<Rc<Expr>> superclass, Rc<Vec<Rc<Stmt>>> methods",
             "Break      : Token token",
             "Expression : Rc<Expr> expression",
             "Function   : Token name, Rc<Vec<Token>> params, Rc<Vec<Rc<Stmt>>> body",
