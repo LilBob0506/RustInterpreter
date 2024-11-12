@@ -135,7 +135,6 @@ impl<'a> StmtVisitor<()> for Resolver<'a> {
             .borrow_mut()
             .insert("this".to_string(), true);
         for method in stmt.methods.deref() {
-            let declaration = FunctionType::Method;
 
             if let Stmt::Function(method) = method.deref() {
                 let declaration = if method.name.as_string() == "init" {
@@ -219,14 +218,15 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
                 .get(&expr.name.as_string())
                 .unwrap()
         {
-            Err(LoxResult::runtime_error(
+            self.error(
                 &expr.name,
-                "Can't read local variable in its own initizlier.",
-            ))
+                "Can't read local variable in its own initializer.",
+            );
         } else {
             self.resolve_local(wrapper, &expr.name);
-            Ok(())
+     
         }
+        Ok(())
     }
     
     fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<(), LoxResult> {
@@ -336,6 +336,6 @@ impl<'a> Resolver<'a> {
 
     fn error(&self, token: &Token, message: &str) {
         self.had_error.replace(true);
-        LoxResult::runtime_error(token, message);
+        LoxResult::parse_error(token, message);
     }
 }

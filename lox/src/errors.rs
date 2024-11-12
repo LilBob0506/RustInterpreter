@@ -18,9 +18,13 @@ pub enum LoxResult {
     SystemError { message: String },
     ReturnValue { value: LiteralValue },
     Break,
+    Fail,
 }
 
 impl LoxResult {
+    pub fn fail() -> LoxResult {
+        LoxResult::Fail
+    }
     pub fn return_value(value: LiteralValue) -> LoxResult {
         LoxResult::ReturnValue { value }
     }
@@ -59,12 +63,23 @@ impl LoxResult {
 
     fn report(&self, loc: &str) {
         match self {
-            LoxResult::ParseError { token, message }
-            | LoxResult::RuntimeError { token, message } => {
+            LoxResult::ParseError { token, message } => {
                 if token.is(TokenType::EOF) {
-                    eprintln!("{} at end {}", token.line, message);
+                    eprintln!("[line {}] Error at end: {}", token.line, message);
                 } else {
-                    eprintln!("{} at '{}' {}", token.line, token.as_string(), message);
+                    eprintln!(
+                        "[line {}] Error at '{}': {}",
+                        token.line,
+                        token.as_string(),
+                        message
+                    );
+                }
+            }
+            LoxResult::RuntimeError { token, message } => {
+                if token.is(TokenType::EOF) {
+                    eprintln!("[line {}] Error at end: {}", token.line, message);
+                } else {
+                    eprintln!("{}\n[line {}]", message, token.line);
                 }
             }
             LoxResult::Error { line, message } => {
@@ -74,6 +89,10 @@ impl LoxResult {
                 eprint!("System Error: {message}");
             }
             LoxResult::Break | LoxResult::ReturnValue { .. } => {}
+            
+            LoxResult::Fail => {
+                panic!("should not get here")
+            }
         };
     }
 }

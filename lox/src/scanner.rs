@@ -111,13 +111,13 @@ impl Scanner {
             '0'..='9' => {
                 self.number();
             }
-            _ if c.is_ascii_alphabetic() || c == '_' => {
+            _ if c.is_alphabetic() || c == '_' => {
                 self.identifier();
             }
             _ => {
-                return Err(LoxResult::error(self.line, "Unexpected character"));
+                LoxResult::error(self.line, "Unexpected character.");
             }
-        }
+        };
         Ok(())
     }
     fn identifier(&mut self) {
@@ -161,7 +161,7 @@ impl Scanner {
     }
     fn is_alpha_numeric(ch: Option<char>) -> bool {
         if let Some(ch) = ch {
-            ch.is_ascii_alphabetic()
+            ch.is_ascii_alphabetic() || ch == '_'
         } else {
             false
         }
