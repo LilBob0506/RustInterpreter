@@ -162,7 +162,9 @@ impl Scanner {
         if let Some(token_type) = Scanner::keywords(text.as_str()) {
             self.add_token(token_type);
         }
+        else{
         self.add_token(TokenType::IDENTIFIER);
+        }
     }
     fn number(&mut self) {
         while Scanner::is_digit(self.peak()) {
