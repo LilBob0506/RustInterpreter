@@ -70,6 +70,7 @@ pub enum LiteralValue {
     Native(Rc<LoxNative>),
     Nil,
     ArithmeticError,
+    NumsOrStringsError,
 }
 impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -83,7 +84,7 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Class(c) => write!(f, "{}", c),
             LiteralValue::Native(n) => write!(f, "{n}"),
             LiteralValue::Instance(i) => write!(f, "<Instance of {}", i),
-            &LiteralValue::ArithmeticError => panic!("Should not be trying to print this"),
+             _ => panic!("Should not be trying to print this"),
         }
     }
 }
@@ -211,7 +212,7 @@ impl fmt::Debug for LoxNative {
 }
 impl fmt::Display for LoxNative {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<Native-Function>")
+        write!(f, "<native fn>")
     }
 }
 pub struct NativeClock;

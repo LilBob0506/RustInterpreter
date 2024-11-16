@@ -62,11 +62,12 @@ impl Lox {
 
     pub fn run_file(&self, path: &str) -> io::Result<()> {
         let buf = std::fs::read_to_string(path)?;
-        if self.run(buf).is_err() {
-            // Ignore: error was already reported
-            std::process::exit(65);
+        match self.run(buf) {
+            Ok(_) => std::process::exit(0),
+            Err(LoxResult::RuntimeError { .. }) => std::process::exit(70),
+            _ => std::process::exit(65),
         }
-        Ok(())
+
     }
 
     pub fn run_prompt(&self) {
@@ -97,14 +98,15 @@ impl Lox {
         let mut parser = Parser::new(tokens);
         let statements = parser.parse()?;
 
-        if parser.success() {
-            let resolver = Resolver::new(&self.interpreter);
-            let s = Rc::new(statements);
-            resolver.resolve(&Rc::clone(&s))?;
-            if resolver.success() {
-                self.interpreter.interpret(&Rc::clone(&s));
-            }
+        let resolver = Resolver::new(&self.interpreter);
+        let s = Rc::new(statements);
+        resolver.resolve(&Rc::clone(&s))?;
+        if resolver.success() {
+            self.interpreter.interpret(&Rc::clone(&s))?;
+        } else {
+            std::process::exit(65);
         }
+
         Ok(())
     }
 }
