@@ -291,7 +291,7 @@ impl<'a> Parser<'a> {
         let mut expr = self.comparison()?;
 
         while self.is_match(&[TokenType::BANG_EQUAL, TokenType::EQUAL]) {
-            let operator = self.previous().dup();
+            let operator = self.previous().dup(); 
             let right = self.comparison()?;
             expr = Expr::Binary(Rc::new(BinaryExpr {
                 left: Rc::new(expr),
