@@ -91,8 +91,8 @@ impl fmt::Display for LiteralValue {
 
 #[derive(Debug, Clone)]
 pub struct Token {
-    pub token_type: TokenType,
-    pub lexeme: String,
+    token_type: TokenType,
+    lexeme: String,
     pub line: usize,
     pub literal: Option<LiteralValue>,
 }

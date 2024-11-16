@@ -21,7 +21,7 @@ impl Debug for Callable {
 
 impl Display for Callable {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Callable");
+        write!(f, "<Callable>");
         Ok(())
     }
 }
@@ -45,15 +45,3 @@ pub trait LoxCallable {
     fn arity(&self) -> usize;
     
 }
-/*
-impl LoxCallable for Callable {
-    fn call(&self, interpreter: &Interpreter, arguments: Vec<LiteralValue>) -> Result<LiteralValue, LoxResult> {
-        self.func.call(interpreter, arguments)
-    }
-    
-    fn arity(&self) -> usize {
-        self.func.arity()
-    }
-}
-
-*/

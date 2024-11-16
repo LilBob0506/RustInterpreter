@@ -95,10 +95,15 @@ impl Scanner {
                     while let Some(ch) = self.peak() {
                         if ch != '\n' {
                             self.advance();
+                        } else {
+                            break;
                         }
                     }
+                } else if self.equal_differentiator('*') {
+                    // block comment start
+                    self.scan_comment()?;
                 } else {
-                    self.add_token(TokenType::SLASH)
+                    self.add_token(TokenType::SLASH);
                 }
             }
             ' ' | '\r' | '\t' => {}
@@ -119,6 +124,35 @@ impl Scanner {
             }
         };
         Ok(())
+    }
+
+    fn scan_comment(&mut self) -> Result<(), LoxResult> {
+        loop {
+            match self.peak() {
+                Some('*') => {
+                    self.advance();
+                    if self.equal_differentiator('/') {
+                        return Ok(());
+                    }
+                }
+                Some('/') => {
+                    self.advance();
+                    if self.equal_differentiator('*') {
+                        self.scan_comment()?;
+                    }
+                }
+                Some('\n') => {
+                    self.advance();
+                    self.line += 1;
+                }
+                None => {
+                    return Err(LoxResult::error(self.line, "Unterminated comment"));
+                }
+                _ => {
+                    self.advance();
+                }
+            }
+        }
     }
     fn identifier(&mut self) {
         while Scanner::is_alpha_numeric(self.peak()) {
@@ -217,6 +251,9 @@ impl Scanner {
     fn peak(&self) -> Option<char> {
         self.source.get(self.current).copied()
     }
+    fn peek_next(&self) -> Option<char> {
+        self.source.get(self.current + 1).copied()
+    }
     fn keywords(check: &str) -> Option<TokenType> {
         match check {
             "and" => Some(TokenType::AND),
@@ -234,7 +271,8 @@ impl Scanner {
             "this" => Some(TokenType::THIS),
             "true" => Some(TokenType::TRUE),
             "var" => Some(TokenType::VAR),
-
+            "while" => Some(TokenType::WHILE),
+            "break" => Some(TokenType::Break),
             _ => None,
         }
     }
