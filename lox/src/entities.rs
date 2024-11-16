@@ -6,7 +6,6 @@ use std::time::SystemTime;
 use crate::{callable::*, interpreter::*, lox_class::LoxClass, lox_instance::LoxInstance, LoxResult};
 use crate::lox_function::*;
 use std::fmt::Display;
-use crate::lox_class::*;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
