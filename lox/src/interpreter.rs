@@ -18,7 +18,7 @@ use crate::stmt::*;
 pub struct Interpreter {
    pub globals: Rc<RefCell<Environment>>,
     environment: RefCell<Rc<RefCell<Environment>>>,
-    nest: RefCell<usize>,
+    //nest: RefCell<usize>,
     locals: RefCell<HashMap<Rc<Expr>, usize>>,
 }
 
@@ -391,7 +391,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             if let LiteralValue::Func(func) = method {
                 Ok(func.bind(&literalvalue))
             } else {
-                panic!();
+                panic!("method was not a function");
             }
         } else {
             Err(LoxResult::runtime_error(
@@ -417,8 +417,7 @@ impl Interpreter {
 
         Interpreter {
             globals: Rc::clone(&globals), 
-            environment: RefCell::new(Rc::new(RefCell::new(Environment::new()))),
-            nest: RefCell::new(0),
+            environment: RefCell::new(Rc::clone(&globals)),
             locals: RefCell::new(HashMap::new()),
         }
     }

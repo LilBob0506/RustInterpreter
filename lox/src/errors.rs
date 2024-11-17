@@ -1,14 +1,14 @@
 use crate::entities::*;
-pub struct RuntimeError<'a> {
+/*pub struct RuntimeError<'a> {
     pub token: &'a Token,
     pub message: &'a str,
-}
+}*/
 
 // #[derive(Debug)]
-pub struct ParseError<'a> {
+/*pub struct ParseError<'a> {
     pub token: &'a Token,
     pub message: &'a str,
-}
+}*/
 
 #[derive(Debug)]
 pub enum LoxResult {
