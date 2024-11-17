@@ -290,7 +290,7 @@ impl<'a> Parser<'a> {
     fn equality(&mut self) -> Result<Expr, LoxResult> {
         let mut expr = self.comparison()?;
 
-        while self.is_match(&[TokenType::BANG_EQUAL, TokenType::EQUAL]) {
+        while self.is_match(&[TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL]) {
             let operator = self.previous().dup();
             let right = self.comparison()?;
             expr = Expr::Binary(Rc::new(BinaryExpr {
