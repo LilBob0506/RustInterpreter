@@ -230,7 +230,7 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
     }
     
     fn visit_get_expr(&self, _: Rc<Expr>, expr: &GetExpr) -> Result<(), LoxResult> {
-        self.resolve_expr(expr.literalvalue.clone());
+        let _ = self.resolve_expr(expr.literalvalue.clone());
         Ok(())
     }
     

@@ -12,6 +12,7 @@ use crate::errors::*;
 use crate::expr::*;
 use crate::lox_function::*;
 use crate::stmt::*;
+use crate::native_functions::*;
 //use crate::lox_function::*;
 #[derive()]
 
@@ -186,12 +187,11 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 TokenType::LESS => LiteralValue::Bool(left < right),
                 TokenType::LESS_EQUAL => LiteralValue::Bool(left <= right),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
-                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(left == right),
                 _ => {
                     todo!();
                 }
             },
-
             (LiteralValue::Num(left), LiteralValue::Str(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
                 TokenType::EQUAL => LiteralValue::Bool(false),
@@ -200,6 +200,8 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             },
             (LiteralValue::Str(left), LiteralValue::Num(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
+                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::BANG_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::ArithmeticError,
             },
             (LiteralValue::Str(left), LiteralValue::Str(right)) => match op {
@@ -223,7 +225,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 TokenType::EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::NumsOrStringsError,
             },
-            (LiteralValue::Nil, _) | (_, LiteralValue::Nil)=> match op {
+            (LiteralValue::Nil, _) | (_, LiteralValue::Nil) => match op {
                 TokenType::EQUAL => LiteralValue::Bool(false),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::NumsOrStringsError,
@@ -236,8 +238,8 @@ impl ExprVisitor<LiteralValue> for Interpreter {
                 TokenType::PLUS => LiteralValue::NumsOrStringsError,
                 _ => LiteralValue::ArithmeticError,
             },
-
         };
+
 
             match result {
                 LiteralValue::ArithmeticError => Err(LoxResult::runtime_error(

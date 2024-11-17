@@ -35,8 +35,10 @@ use resolver::*;
 mod errors;
 use errors::*;
 
+mod native_functions;
 
-static mut HAD_ERROR: bool = false;
+
+//static mut HAD_ERROR: bool = false;
 pub fn main() {
     let args: Vec<String> = args().collect();
     let lox = Lox::new();

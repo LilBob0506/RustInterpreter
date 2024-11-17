@@ -1,9 +1,8 @@
 use core::fmt;
 use std::rc::Rc;
-use std::time::SystemTime;
 //use std::ops::*;
 
-use crate::{callable::*, interpreter::*, lox_class::LoxClass, lox_instance::LoxInstance, LoxResult};
+use crate::{ lox_class::LoxClass, lox_instance::LoxInstance,native_functions::*};
 use crate::lox_function::*;
 use std::fmt::Display;
 #[allow(non_camel_case_types)]
@@ -193,101 +192,4 @@ impl From<bool> for LoxValue {
         LoxValue::Boolean(value)
     }
 }
-#[derive(Clone)]
-pub struct LoxNative {
-    pub func: Rc<dyn LoxCallable>,
-}
-impl PartialEq for LoxNative {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(
-            Rc::as_ptr(&self.func) as *const (),
-            Rc::as_ptr(&other.func) as *const (),
-        )
-    }
-}
-impl fmt::Debug for LoxNative {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<Native-Function>")
-    }
-}
-impl fmt::Display for LoxNative {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<native fn>")
-    }
-}
-pub struct NativeClock;
 
-impl LoxCallable for NativeClock {
-    fn call(
-        &self,
-        _terp: &Interpreter,
-        _args: Vec<LiteralValue>,
-        _klass: Option<Rc<LoxClass>>,
-    ) -> Result<LiteralValue, LoxResult> {
-        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(n) => Ok(LiteralValue::Num(n.as_millis() as f64)),
-            Err(e) => Err(LoxResult::system_error(&format!(
-                "Clock returned invalid duration: {:?}",
-                e.duration()
-            ))),
-        }
-    }
-
-    fn arity(&self) -> usize {
-        0
-    }
-}
-
-
-//#[derive(Debug)]
-/*pub struct RuntimeError<'a> {
-    pub token: &'a Token,
-    pub message: &'a str,
-}
-
-// #[derive(Debug)]
-pub struct ParseError<'a> {
-    pub token: &'a Token,
-    pub message: &'a str,
-}
-
-// #[derive(Debug)]
-pub struct LoxError {
-    token: Option<Token>,
-    line: usize,
-    message: String,
-}
-
-impl LoxError {
-    pub fn error(line: usize, message: &str) -> LoxError {
-        let err = LoxError {
-            token: None,
-            line,
-            message: message.to_string(),
-        };
-        err.report("");
-        err
-    }
-    pub fn parse_error(token: &Token, message: &str) -> LoxError {
-        let err = LoxError {
-            token: Some(token.dup()),
-            line: token.line,
-            message : message.to_string(),
-        };
-        err.report("");
-        err
-    }
-
-    pub fn report(&self, loc: &str) {
-        if let Some(token) = &self.token {
-            if token.is(TokenType::EOF) {
-                eprintln!("{} at end {}", token.line, self.message);
-            } else {
-                eprintln!("{} at '{}' {}", token.line, token.as_string(), self.message);
-            }
-        } else {
-            eprintln!("[line {}] Error{}: {}", self.line, loc, self.message);
-        }
-    }
-}
-*/

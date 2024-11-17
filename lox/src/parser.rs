@@ -84,7 +84,7 @@ impl<'a> Parser<'a> {
 
     fn statement(&mut self) -> Result<Rc<Stmt>, LoxResult> {
         if self.is_match(&[TokenType::Break]) {
-            let token = self.peek().dup();
+            let token = self.previous().dup();
             self.consume(TokenType::SEMICOLON, "Expect ';' after break statement.")?;
             return Ok(Rc::new(Stmt::Break(Rc::new(BreakStmt { token }))));
         }
@@ -177,9 +177,9 @@ impl<'a> Parser<'a> {
         Ok(body)
     }
     fn if_statement(&mut self) -> Result<Stmt, LoxResult> {
-        self.consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+        let _ = self.consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
         let condition = Rc::new(self.expression()?);
-        self.consume(TokenType::RIGHT_PAREN, "Expect ')' after 'if'.");
+        let _ = self.consume(TokenType::RIGHT_PAREN, "Expect ')' after 'if'.");
 
         let then_branch = self.statement()?;
         let else_branch = if self.is_match(&[TokenType::ELSE]) {
@@ -282,7 +282,7 @@ impl<'a> Parser<'a> {
             statements.push(self.declaration()?);
         }
 
-        self.consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+        let _ = self.consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
 
         Ok(statements)
     }

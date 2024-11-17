@@ -14,8 +14,8 @@ pub struct Callable {
 }
 
 impl Debug for Callable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Callable")
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "<Callable>")
     }
 }
 
