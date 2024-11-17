@@ -113,6 +113,7 @@ impl Scanner {
             '"' => {
                 self.string()?;
             }
+           
             '0'..='9' => {
                 self.number();
             }
@@ -155,6 +156,7 @@ impl Scanner {
         }
     }
     fn identifier(&mut self) {
+
         while Scanner::is_alpha_numeric(self.peak()) {
             self.advance();
         }
@@ -197,7 +199,7 @@ impl Scanner {
     }
     fn is_alpha_numeric(ch: Option<char>) -> bool {
         if let Some(ch) = ch {
-            ch.is_ascii_alphabetic() || ch == '_'
+            ch.is_ascii_alphabetic() || ch == '_' ||  ch.is_ascii_digit()
         } else {
             false
         }

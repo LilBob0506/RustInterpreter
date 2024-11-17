@@ -438,7 +438,7 @@ impl Interpreter {
         environment: Environment,
     ) -> Result<(), LoxResult> {
         let previous = self.environment.replace(Rc::new(RefCell::new(environment)));
-
+        
         let result = statements
             .iter()
             .try_for_each(|statement| self.execute(statement.clone()));
