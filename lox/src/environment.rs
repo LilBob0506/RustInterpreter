@@ -30,8 +30,8 @@ impl Environment {
     pub fn assign(&mut self, name: &Token, value: LiteralValue) -> Result<(), LoxResult> {
         if let Entry::Occupied(mut literal_value) = self.values.entry(name.as_string()) {
             literal_value.insert(value);
-            Ok(())
-        } else if let Some(enclosing) = &self.enclosing {
+            return Ok(());
+        } if let Some(enclosing) = &self.enclosing {
             enclosing.borrow_mut().assign(name, value)
         } else {
             Err(LoxResult::runtime_error(
@@ -47,8 +47,9 @@ impl Environment {
 
     pub fn get(&self, name: &Token) -> Result<LiteralValue, LoxResult> {
         if let Some(object) = self.values.get(&name.as_string()) {
-            Ok(object.clone())
-        } else if let Some(enclosing) = &self.enclosing {
+           return Ok(object.clone());
+        }
+        if let Some(enclosing) = &self.enclosing {
             enclosing.borrow().get(name)
         } else {
             Err(LoxResult::runtime_error(
