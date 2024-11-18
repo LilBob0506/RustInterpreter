@@ -1,19 +1,12 @@
-var a = "global a";
-var b = "global b";
-var c = "global c";
 {
-  var a = "outer a";
-  var b = "outer b";
-  {
-    var a = "inner a";
-    print a;
-    print b;
-    print c;
+  var foo = "closure";
+  fun f() {
+    {
+      print foo; // expect: closure
+      var foo = "shadow";
+      print foo; // expect: shadow
+    }
+    print foo; // expect: closure
   }
-  print a;
-  print b;
-  print c;
+  f();
 }
-print a;
-print b;
-print c;

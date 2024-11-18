@@ -208,24 +208,11 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
     }
 
     fn visit_variable_expr(&self, wrapper: Rc<Expr>, expr: &VariableExpr) -> Result<(), LoxResult> {
-        if !self.scopes.borrow().is_empty()
-            && !self
-                .scopes
-                .borrow()
-                .last()
-                .unwrap()
-                .borrow()
-                .get(&expr.name.as_string())
-                .unwrap()
-        {
-            self.error(
-                &expr.name,
-                "Can't read local variable in its own initializer.",
-            );
-        } else {
+      
+      
             self.resolve_local(wrapper, &expr.name);
      
-        }
+
         Ok(())
     }
     

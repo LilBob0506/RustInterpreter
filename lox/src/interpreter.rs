@@ -60,7 +60,8 @@ impl StmtVisitor<()> for Interpreter {
 
     fn visit_block_stmt(&self, _: Rc<Stmt>, stmt: &BlockStmt) -> Result<(), LoxResult> {
         let e = Environment::new_with_enclosing(self.environment.borrow().clone());
-        self.execute_block(&stmt.statements, e)
+        self.execute_block(&stmt.statements, e);
+        Ok(())
     }
 
     fn visit_var_stmt(&self, _: Rc<Stmt>, stmt: &VarStmt) -> Result<(), LoxResult> {
@@ -438,7 +439,6 @@ impl Interpreter {
         environment: Environment,
     ) -> Result<(), LoxResult> {
         let previous = self.environment.replace(Rc::new(RefCell::new(environment)));
-        
         let result = statements
             .iter()
             .try_for_each(|statement| self.execute(statement.clone()));
