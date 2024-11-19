@@ -1,0 +1,8 @@
+var a = "coffee";
+print a; // expect: coffee
+
+a = "tea";
+print a; // expect: tea
+
+print a = "bread"; // expect: bread
+print a; // expect: bread
