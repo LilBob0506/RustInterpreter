@@ -1,0 +1,4 @@
+var a="past";
+var a;
+
+print a;//nil
