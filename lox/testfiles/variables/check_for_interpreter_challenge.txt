@@ -1,0 +1,2 @@
+var a = "scone";
+print a+4; //expect scone4
