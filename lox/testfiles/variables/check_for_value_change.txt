@@ -1,0 +1,8 @@
+var a="past";
+print a; //expect past
+
+var a="present";
+print a; //expect present
+
+var a="future";
+print a; //expect future
