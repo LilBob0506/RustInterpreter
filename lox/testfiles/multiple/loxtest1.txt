@@ -2,7 +2,7 @@ var name = "Lox";
 print "Welcome to " + name + "!"; // "pass"
 
 var age = 18;
-if (age >= 18) { print "Pass"; } else { print "fail" ;} // "pass"
+if (age >= 18) { print "pass"; } else { print "fail" ;} // "pass"
 
 var count = 0;
 
@@ -12,11 +12,23 @@ while (count < 5) {
 } 
 if ( count >= 4 ) print "pass"; //  " pass"
 
+var count = 0;
+
 for (var i = 0; i < 5; i = i + 1) {
-    if (i%2==0) {
-        print i;
-    }
-} //  "fail"
+	var mod= i;
+   while (mod >= 2) {
+     mod = mod - 2;
+  }
+ if (mod == 1) {
+}
+else
+{
+print i;
+count= count+1;
+}
+} //  "pass"
+
+if ( count <= 3 ) print "pass"; //  " pass"
 
 fun greet(name) {
   print "Hello, " + name + "!";
