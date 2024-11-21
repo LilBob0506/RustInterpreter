@@ -60,7 +60,8 @@ impl StmtVisitor<()> for Interpreter {
 
     fn visit_block_stmt(&self, _: Rc<Stmt>, stmt: &BlockStmt) -> Result<(), LoxResult> {
         let e = Environment::new_with_enclosing(self.environment.borrow().clone());
-        self.execute_block(&stmt.statements, e)
+        self.execute_block(&stmt.statements, e);
+        Ok(())
     }
 
     fn visit_var_stmt(&self, _: Rc<Stmt>, stmt: &VarStmt) -> Result<(), LoxResult> {
@@ -194,39 +195,39 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             },
             (LiteralValue::Num(left), LiteralValue::Str(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
-                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(false),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::ArithmeticError,
             },
             (LiteralValue::Str(left), LiteralValue::Num(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
-                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(false),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::ArithmeticError,
             },
             (LiteralValue::Str(left), LiteralValue::Str(right)) => match op {
                 TokenType::PLUS => LiteralValue::Str(format!("{left}{right}")),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
-                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(left == right),
                 _ => LiteralValue::ArithmeticError,
             },
             (LiteralValue::Bool(left), LiteralValue::Bool(right)) => match op {
                 TokenType::BANG_EQUAL => LiteralValue::Bool(left != right),
-                TokenType::EQUAL => LiteralValue::Bool(left == right),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(left == right),
                 _ => LiteralValue::ArithmeticError,
             },
             (LiteralValue::Bool(_), LiteralValue::Str(_)) | (LiteralValue::Str(_), LiteralValue::Bool(_)) => match op {
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
-                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(false),
                 _ => LiteralValue::NumsOrStringsError,
             },
             (LiteralValue::Nil, LiteralValue::Nil) => match op {
                 TokenType::BANG_EQUAL => LiteralValue::Bool(false),
-                TokenType::EQUAL => LiteralValue::Bool(true),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::NumsOrStringsError,
             },
             (LiteralValue::Nil, _) | (_, LiteralValue::Nil) => match op {
-                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(false),
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
                 _ => LiteralValue::NumsOrStringsError,
             },
@@ -234,7 +235,7 @@ impl ExprVisitor<LiteralValue> for Interpreter {
             (LiteralValue::Class(a), LiteralValue::Class(b)) => LiteralValue::Bool(Rc::ptr_eq(&a, &b)),
             _ => match op {
                 TokenType::BANG_EQUAL => LiteralValue::Bool(true),
-                TokenType::EQUAL => LiteralValue::Bool(false),
+                TokenType::EQUAL_EQUAL => LiteralValue::Bool(false),
                 TokenType::PLUS => LiteralValue::NumsOrStringsError,
                 _ => LiteralValue::ArithmeticError,
             },
@@ -438,7 +439,6 @@ impl Interpreter {
         environment: Environment,
     ) -> Result<(), LoxResult> {
         let previous = self.environment.replace(Rc::new(RefCell::new(environment)));
-
         let result = statements
             .iter()
             .try_for_each(|statement| self.execute(statement.clone()));

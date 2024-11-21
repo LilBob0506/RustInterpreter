@@ -1,0 +1,7 @@
+var a = "x
+y
+z";
+print a;
+// expect: x
+// expect: y
+// expect: z

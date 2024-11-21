@@ -1,0 +1,5 @@
+var three;
+
+var c = three;
+
+print c;// nil
