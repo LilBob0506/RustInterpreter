@@ -225,7 +225,7 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
         } else {
             self.resolve_local(wrapper, &expr.name);
      
-
+        }
         Ok(())
     }
     

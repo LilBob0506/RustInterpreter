@@ -60,7 +60,7 @@ impl StmtVisitor<()> for Interpreter {
 
     fn visit_block_stmt(&self, _: Rc<Stmt>, stmt: &BlockStmt) -> Result<(), LoxResult> {
         let e = Environment::new_with_enclosing(self.environment.borrow().clone());
-        self.execute_block(&stmt.statements, e);
+        let _ = self.execute_block(&stmt.statements, e);
         Ok(())
     }
 

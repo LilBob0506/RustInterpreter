@@ -282,7 +282,7 @@ impl<'a> Parser<'a> {
             statements.push(self.declaration()?);
         }
 
-        self.consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+        let _ = self.consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
 
         Ok(statements)
     }
