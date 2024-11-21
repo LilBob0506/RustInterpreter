@@ -209,14 +209,14 @@ impl<'a> ExprVisitor<()> for Resolver<'a> {
 
     fn visit_variable_expr(&self, wrapper: Rc<Expr>, expr: &VariableExpr) -> Result<(), LoxResult> {
         if !self.scopes.borrow().is_empty()
-            && !self
+            && self
                 .scopes
                 .borrow()
                 .last()
                 .unwrap()
                 .borrow()
                 .get(&expr.name.as_string())
-                .unwrap()
+                == Some(&false)
         {
             self.error(
                 &expr.name,

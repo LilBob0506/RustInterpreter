@@ -1,0 +1,25 @@
+var name = "Lox";
+print "Welcome to " + name + "!"; // "pass"
+
+var age = 18;
+if (age >= 18) { print "Pass"; } else { print "fail" ;} // "pass"
+
+var count = 0;
+
+while (count < 5) {
+  print count;
+  count = count + 1;
+} 
+if ( count >= 4 ) print "pass"; //  " pass"
+
+for (var i = 0; i < 5; i = i + 1) {
+    if (i%2==0) {
+        print i;
+    }
+} //  "fail"
+
+fun greet(name) {
+  print "Hello, " + name + "!";
+}
+
+greet("Alice"); // pass;
