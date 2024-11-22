@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-{"rustc":16073551614293250696,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[4314656595372907371,"build_script_build",false,12116257639616636892]],"local":[{"Precalculated":"13376789551.074295800s (target/.rustc_info.json)"}],"rustflags":[],"metadata":0,"config":0,"compile_kind":0}
-=======
-{"rustc":16073551614293250696,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[4314656595372907371,"build_script_build",false,12116257639616636892]],"local":[{"Precalculated":"13376680461.526688000s (src/loxtest.txt)"}],"rustflags":[],"metadata":0,"config":0,"compile_kind":0}
->>>>>>> 2cec696c3e7d337d76010f5c1661d15235b9f6d5
+{"rustc":16073551614293250696,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[4314656595372907371,"build_script_build",false,12116257639616636892]],"local":[{"Precalculated":"13376791895.480841800s (script/loxtest.txt)"}],"rustflags":[],"metadata":0,"config":0,"compile_kind":0}

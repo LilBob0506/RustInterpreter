@@ -1,0 +1,64 @@
+
+// Variables
+var x = 10; if (x == 10) print "PASS";
+var y; if (y == nil) print "PASS";
+x = 5; x = x + 2; if (x == 7) print "PASS";
+
+// Arithmetic
+if (1 + 2 == 3) print "PASS";
+if (5 - 3 == 2) print "PASS";
+if (4 * 2 == 8) print "PASS";
+if (8 / 2 == 4) print "PASS";
+
+// Comparison
+if (5 > 3) print "PASS";
+if (5 < 6) print "PASS";
+if (3 >= 3) print "PASS";
+if (3 <= 4) print "PASS";
+if (5 == 5) print "PASS";
+if (5 != 3) print "PASS";
+
+// Logic
+if (true and true) print "PASS";
+if (true or false) print "PASS";
+if (!false) print "PASS";
+
+// If statements
+if (true) print "PASS";
+if (false) {} else print "PASS";
+
+// Loops
+var i = 0; while (i < 3) { i = i + 1; } if (i == 3) print "PASS";
+var j;
+for (j = 0; j < 3; j = j + 1) {} if (j == 3) print "PASS";
+
+// Functions
+fun add(a, b) { return a + b; }
+if (add(3, 4) == 7) print "PASS";
+
+fun greet() { print "PASS"; }
+greet();
+
+fun square(n) { return n * n; }
+if (square(3) == 9) print "PASS";
+
+
+// Classes
+class Person { init(name) { this.name = name; } sayHi() { if (this.name == "Alice") print "PASS"; } }
+var p = Person("Alice");
+p.sayHi();
+
+class Math { square(n) { return n * n; } }
+var M = Math();
+var s = M.square(5);
+if (s == 25) print "PASS";
+
+// Edge cases
+if (nil == nil) print "PASS";
+if (true) print "PASS";
+if (!false) print "PASS";
+var z; if (z == nil) print "PASS";
+
+// Combined
+fun fib(n) { if (n <= 1) return n; return fib(n - 1) + fib(n - 2); }
+if (fib(6) == 8) print "PASS";
