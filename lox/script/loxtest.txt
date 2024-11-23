@@ -1,64 +1,99 @@
 
 // Variables
-var x = 10; if (x == 10) print "PASS";
-var y; if (y == nil) print "PASS";
-x = 5; x = x + 2; if (x == 7) print "PASS";
+var x = 10; if (x == 10) print "Test 1: PASS"; else print "Test 1: FAIL";
+var y; if (y == nil) print "Test 2: PASS"; else print "Test 2: FAIL";
+x = 5; x = x + 2; if (x == 7) print "Test 3: PASS"; else print "Test 3: FAIL";
+var z = "test"; if (z == "test") print "Test 4: PASS"; else print "Test 4: FAIL";
+var a = true; if (a) print "Test 5: PASS"; else print "Test 5: FAIL";
 
 // Arithmetic
-if (1 + 2 == 3) print "PASS";
-if (5 - 3 == 2) print "PASS";
-if (4 * 2 == 8) print "PASS";
-if (8 / 2 == 4) print "PASS";
+if (1 + 2 == 3) print "Test 6: PASS"; else print "Test 6: FAIL";
+if (5 - 3 == 2) print "Test 7: PASS"; else print "Test 7: FAIL";
+if (4 * 2 == 8) print "Test 8: PASS"; else print "Test 8: FAIL";
+if (8 / 2 == 4) print "Test 9: PASS"; else print "Test 9: FAIL";
+if (10 - 7 + 4 == 7) print "Test 10: PASS"; else print "Test 10: FAIL";
+if ((5 * 3) / (6 / 2) == 5) print "Test 11: PASS"; else print "Test 11: FAIL";
 
 // Comparison
-if (5 > 3) print "PASS";
-if (5 < 6) print "PASS";
-if (3 >= 3) print "PASS";
-if (3 <= 4) print "PASS";
-if (5 == 5) print "PASS";
-if (5 != 3) print "PASS";
+if (5 > 3) print "Test 12: PASS"; else print "Test 12: FAIL";
+if (5 < 6) print "Test 13: PASS"; else print "Test 13: FAIL";
+if (3 >= 3) print "Test 14: PASS"; else print "Test 14: FAIL";
+if (3 <= 4) print "Test 15: PASS"; else print "Test 15: FAIL";
+if (5 == 5) print "Test 16: PASS"; else print "Test 16: FAIL";
+if (5 != 3) print "Test 17: PASS"; else print "Test 17: FAIL";
+if (!(5 < 3)) print "Test 18: PASS"; else print "Test 18: FAIL";
 
 // Logic
-if (true and true) print "PASS";
-if (true or false) print "PASS";
-if (!false) print "PASS";
+if (true and true) print "Test 19: PASS"; else print "Test 19: FAIL";
+if (true or false) print "Test 20: PASS"; else print "Test 20: FAIL";
+if (!false) print "Test 21: PASS"; else print "Test 21: FAIL";
+if (!(true and false)) print "Test 22: PASS"; else print "Test 22: FAIL";
+if (true and (false or true)) print "Test 23: PASS"; else print "Test 23: FAIL";
 
 // If statements
-if (true) print "PASS";
-if (false) {} else print "PASS";
+if (true) print "Test 24: PASS"; else print "Test 24: FAIL";
+if (false) {} else print "Test 25: PASS";
+if (1 + 1 == 2) print "Test 26: PASS"; else print "Test 26: FAIL";
+if (1 > 2) {} else print "Test 27: PASS";
 
 // Loops
-var i = 0; while (i < 3) { i = i + 1; } if (i == 3) print "PASS";
-var j;
-for (j = 0; j < 3; j = j + 1) {} if (j == 3) print "PASS";
+var i = 0; while (i < 3) { i = i + 1; } if (i == 3) print "Test 28: PASS"; else print "Test 28: FAIL";
+var j; for (j = 0; j < 3; j = j + 1) {} if (j == 3) print "Test 29: PASS"; else print "Test 29: FAIL";
+var count = 0; while (count < 5) { count = count + 1; } if (count == 5) print "Test 30: PASS"; else print "Test 30: FAIL";
+var k; for (k = 10; k > 5; k = k - 1) {} if (k == 5) print "Test 31: PASS"; else print "Test 31: FAIL";
 
 // Functions
 fun add(a, b) { return a + b; }
-if (add(3, 4) == 7) print "PASS";
+if (add(3, 4) == 7) print "Test 32: PASS"; else print "Test 32: FAIL";
 
-fun greet() { print "PASS"; }
+fun greet() { print "Test 33: PASS"; }
 greet();
 
 fun square(n) { return n * n; }
-if (square(3) == 9) print "PASS";
+if (square(3) == 9) print "Test 34: PASS"; else print "Test 34: FAIL";
 
+fun multiply(a, b) { return a * b; }
+if (multiply(5, 4) == 20) print "Test 35: PASS"; else print "Test 35: FAIL";
+
+fun factorial(n) { if (n <= 1) return 1; return n * factorial(n - 1); }
+if (factorial(5) == 120) print "Test 36: PASS"; else print "Test 36: FAIL";
+
+fun fibonacci(n) { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); }
+if (fibonacci(6) == 8) print "Test 37: PASS"; else print "Test 37: FAIL";
 
 // Classes
-class Person { init(name) { this.name = name; } sayHi() { if (this.name == "Alice") print "PASS"; } }
+class Person { init(name) { this.name = name; } sayHi() { if (this.name == "Alice") print "Test 38: PASS"; else print "Test 38: FAIL"; } }
 var p = Person("Alice");
 p.sayHi();
 
 class Math { square(n) { return n * n; } }
-var M = Math();
-var s = M.square(5);
-if (s == 25) print "PASS";
+var m = Math(); 
+var s = m.square(5);
+if (s == 25) print "Test 39: PASS"; else print "Test 39: FAIL";
+
+class Counter {
+  init(start) { this.count = start; }
+  increment() { this.count = this.count + 1; }
+  getCount() { return this.count; }
+}
+var c = Counter(10);
+c.increment(); c.increment();
+if (c.getCount() == 12) print "Test 40: PASS"; else print "Test 40: FAIL";
 
 // Edge cases
-if (nil == nil) print "PASS";
-if (true) print "PASS";
-if (!false) print "PASS";
-var z; if (z == nil) print "PASS";
+if (nil == nil) print "Test 41: PASS"; else print "Test 41: FAIL";
+if (true) print "Test 42: PASS"; else print "Test 42: FAIL";
+if (!false) print "Test 43: PASS"; else print "Test 43: FAIL";
+var undef; if (undef == nil) print "Test 44: PASS"; else print "Test 44: FAIL";
+if ("a" + "b" == "ab") print "Test 45: PASS"; else print "Test 45: FAIL";
+if ("" == "") print "Test 46: PASS"; else print "Test 46: FAIL";
+if (" " != "") print "Test 47: PASS"; else print "Test 47: FAIL";
 
-// Combined
-fun fib(n) { if (n <= 1) return n; return fib(n - 1) + fib(n - 2); }
-if (fib(6) == 8) print "PASS";
+// Combined Tests
+var x = 5; var y = 3; if (x > y and x - y == 2) print "Test 48: PASS"; else print "Test 48: FAIL";
+fun test(n) { if (n > 0) return true; return false; }
+if (test(1) and !test(0)) print "Test 49: PASS"; else print "Test 49: FAIL";
+class Calculator { add(a, b) { return a + b; } }
+var calc = Calculator(); 
+if (calc.add(10, 15) == 25) print "Test 50: PASS"; else print "Test 50: FAIL";
+var str = "Hello, " + "world!"; if (str == "Hello, world!") print "Test 51: PASS"; else print "Test 51: FAIL";
