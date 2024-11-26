@@ -27,7 +27,7 @@ To use your own test file, simply place the text file in the lox directory and r
 cargo run -- yourfilehere.txt
 ```
 
-if you want to run the test file for our text cases, the tests will automatically run with the below commmand from the lox directory
+If you want to run the test file for our text cases, the tests will automatically run with the below commmand from the lox directory
 
 ```bash
 cargo run -- script/loxtest.txt
@@ -39,8 +39,11 @@ Snapshots are located in folders labeled Chapter(s)....
 Contains code up to that point of the book
 
 **Chapters 4-6:** Covers Scanner, Tokens, Exprs and Parser
+
 **Chapters 7-9:** Covers Interpreter, Statements, Environment and Control Flow
+
 **Chapters 10-12:** Covers Functions, Resolver, and Classes
+
 **Chapters 13** Covers Inheritance 
 
 ## Test Cases and Code Location
