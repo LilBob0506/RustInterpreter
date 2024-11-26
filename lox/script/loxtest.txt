@@ -1,10 +1,12 @@
+var pass_count = 0;
+var fail_count = 0;
 
 // Variables
-var x = 10; if (x == 10) print "Test 1: PASS"; else print "Test 1: FAIL";
-var y; if (y == nil) print "Test 2: PASS"; else print "Test 2: FAIL";
-x = 5; x = x + 2; if (x == 7) print "Test 3: PASS"; else print "Test 3: FAIL";
-var z = "test"; if (z == "test") print "Test 4: PASS"; else print "Test 4: FAIL";
-var a = true; if (a) print "Test 5: PASS"; else print "Test 5: FAIL";
+var x = 10; if (x == 10) print "Test 1: PASS"; else print "Test 1: FAIL"; // Pass
+var y; if (y == nil) print "Test 2: PASS"; else print "Test 2: FAIL"; // Pass
+x = 5; x = x + 2; if (x == 7) print "Test 3: PASS"; else print "Test 3: FAIL"; // Pass
+var z = "test"; if (z == "test") print "Test 4: PASS"; else print "Test 4: FAIL"; // Pass
+var a = true; if (a) print "Test 5: PASS"; else print "Test 5: FAIL"; 
 
 // Arithmetic
 if (1 + 2 == 3) print "Test 6: PASS"; else print "Test 6: FAIL";
@@ -97,3 +99,4 @@ class Calculator { add(a, b) { return a + b; } }
 var calc = Calculator(); 
 if (calc.add(10, 15) == 25) print "Test 50: PASS"; else print "Test 50: FAIL";
 var str = "Hello, " + "world!"; if (str == "Hello, world!") print "Test 51: PASS"; else print "Test 51: FAIL";
+
