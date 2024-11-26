@@ -97,3 +97,16 @@ class Calculator { add(a, b) { return a + b; } }
 var calc = Calculator(); 
 if (calc.add(10, 15) == 25) print "Test 50: PASS"; else print "Test 50: FAIL";
 var str = "Hello, " + "world!"; if (str == "Hello, world!") print "Test 51: PASS"; else print "Test 51: FAIL";
+
+
+// More Variable
+var str = "Hello"; str = str + " World!"; if (str == "Hello World!") print "Test 52: PASS"; else print "Test 52: FAIL";
+var num = 20; num = num - 5; if (num == 15) print "Test 53: PASS"; else print "Test 53: FAIL";
+var bool = false; bool = !bool; if (bool) print "Test 54: PASS"; else print "Test 54: FAIL";
+var outer = "outer"; {var outer = "inner"; if (outer == "inner") print "Test 55: PASS"; else print "Test 55: FAIL";} if (outer == "outer") print "Test 55.1: PASS"; else print "Test 55.1: FAIL";
+var self = 10; self = self + self; if (self == 20) print "Test 56: PASS"; else print "Test 56: FAIL";
+
+// More Arithmetic
+
+
+
