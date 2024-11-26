@@ -1,2 +1,0 @@
-var error = "fail"
-//expect [line 2] Error at end: Expect ';' after variable declaration.

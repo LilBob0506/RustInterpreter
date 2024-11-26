@@ -1,3 +1,0 @@
-var b = "two";
-
-print b;//expect 2

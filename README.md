@@ -5,7 +5,8 @@ Done in Rust
 
 Members:
 ```bash
-Andre Trotter   Cameron Acree   Shan Sahib     
+Cameron Acree   Shan Sahib    Andre Trotter  
+ 
 ```
 
 ## Building
@@ -35,9 +36,23 @@ cargo run -- script/loxtest.txt
 ## Snapshots Descriptions and Locations
 
 
-## Test Case Output
+
+
+## Test Cases and Code Location
+Test cases are located in 
 
 ```bash
+RustInterpreter/lox/script/loxtest.txt
+```
+Code is located in
+
+```bash
+RustInterpreter/lox/src
+```
+
+## Test Case Output
+
+```rust
 Test 1: Pass
 Test 2: Pass
 Test 3: Pass
