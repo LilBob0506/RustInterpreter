@@ -109,6 +109,15 @@ var outer = "outer"; {var outer = "inner"; if (outer == "inner") print "Test 55:
 var self = 10; self = self + self; if (self == 20) print "Test 56: PASS"; else print "Test 56: FAIL";
 
 // More Arithmetic
+if (-5 + 3 == -2) print "Test 57: PASS"; else print "Test 57: FAIL";
+if (-10 - 5 == -15) print "Test 58: PASS"; else print "Test 58: FAIL";
+if (7 * 0 == 0) print "Test 59: PASS"; else print "Test 59: FAIL";
+if (7 / 2 == 3.5) print "Test 60: PASS"; else print "Test 60: FAIL";
+if ((2 + 3) * 4 == 20) print "Test 61: PASS"; else print "Test 61: FAIL";
+if (2 + 3 * 4 == 14) print "Test 62: PASS"; else print "Test 62: FAIL";
+if (1000000 + 2000000 == 3000000) print "Test 63: PASS"; else print "Test 63: FAIL";
+if ((10 - 5) * (2 + 3) / 5 == 5) print "Test 64: PASS"; else print "Test 64: FAIL";
+
 
 
 
