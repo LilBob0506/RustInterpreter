@@ -103,7 +103,7 @@ var str = "Hello, " + "world!"; if (str == "Hello, world!") print "Test 51: PASS
 var str = "Hello"; str = str + " World!"; if (str == "Hello World!") print "Test 52: PASS"; else print "Test 52: FAIL";
 var num = 20; num = num - 5; if (num == 15) print "Test 53: PASS"; else print "Test 53: FAIL";
 var bool = false; bool = !bool; if (bool) print "Test 54: PASS"; else print "Test 54: FAIL";
-var outer = "outer"; {var outer = "inner"; if (outer == "inner") print "Test 55: PASS"; else print "Test 55: FAIL";} if (outer == "outer") print "Test 55.1: PASS"; else print "Test 55.1: FAIL";
+var outer = "outer"; {var outer = "inner"; if (outer == "inner") print "Test 55.1: PASS"; else print "Test 55.1: FAIL";} if (outer == "outer") print "Test 55.2: PASS"; else print "Test 55.2: FAIL";
 var self = 10; self = self + self; if (self == 20) print "Test 56: PASS"; else print "Test 56: FAIL";
 
 // More Arithmetic
@@ -115,6 +115,26 @@ if ((2 + 3) * 4 == 20) print "Test 61: PASS"; else print "Test 61: FAIL";
 if (2 + 3 * 4 == 14) print "Test 62: PASS"; else print "Test 62: FAIL";
 if (1000000 + 2000000 == 3000000) print "Test 63: PASS"; else print "Test 63: FAIL";
 if ((10 - 5) * (2 + 3) / 5 == 5) print "Test 64: PASS"; else print "Test 64: FAIL";
+
+// More Comparison
+if (-5 < -3) print "Test 65: PASS"; else print "Test 65: FAIL";
+if (5 > 0) print "Test 66: PASS"; else print "Test 66: FAIL";
+if (0 >= 0) print "Test 67: PASS"; else print "Test 67: FAIL";
+if (-3 <= -2) print "Test 68: PASS"; else print "Test 68: FAIL";
+if (-5 == -5) print "Test 69: PASS"; else print "Test 69: FAIL";
+if (5 != "5") print "Test 70: PASS"; else print "Test 70: FAIL";
+if (!false) print "Test 71: PASS"; else print "Test 71: FAIL";
+
+// More Logic
+if (false and false) print "Test 72: FAIL"; else print "Test 72: PASS";
+if (true or true) print "Test 73: PASS"; else print "Test 73: FAIL";
+if (true and false) print "Test 74: FAIL"; else print "Test 74: PASS";
+if (false or true) print "Test 75: PASS"; else print "Test 75: FAIL";
+if (!!true) print "Test 76: PASS"; else print "Test 76: FAIL";
+if (true and (false or (true and true))) print "Test 77: PASS"; else print "Test 77: FAIL";
+if (5 > 3 and 3 < 5) print "Test 78: PASS"; else print "Test 78: FAIL";
+if (5 < 3 or 6 > 4) print "Test 79: PASS"; else print "Test 79: FAIL";
+if (!(true and false)) print "Test 80: PASS"; else print "Test 80: FAIL";
 
 
 
