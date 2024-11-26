@@ -10,7 +10,7 @@ Cameron Acree   Shan Sahib    Andre Trotter  
 ```
 
 ## Building
-Needs Rust to be installed: https://www.rust-lang.org/tools/install
+**Needs Rust to be installed:** https://www.rust-lang.org/tools/install
 
 To build the interpreter:
 ```bash
@@ -35,8 +35,13 @@ cargo run -- script/loxtest.txt
 
 ## Snapshots Descriptions and Locations
 
+Snapshots are located in folders labeled Chapter(s)....
+Contains code up to that point of the book
 
-
+**Chapters 4-6:** Covers Scanner, Tokens, Exprs and Parser
+**Chapters 7-9:** Covers Interpreter, Statements, Environment and Control Flow
+**Chapters 10-12:** Covers Functions, Resolver, and Classes
+**Chapters 13** Covers Inheritance 
 
 ## Test Cases and Code Location
 Test cases are located in 
