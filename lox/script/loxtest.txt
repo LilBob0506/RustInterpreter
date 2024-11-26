@@ -1,77 +1,77 @@
 var pass_count = 0;
-var fail_count = 0;
+var test_count=0;
 
 // Variables
-var x = 10; if (x == 10) print "Test 1: PASS"; else print "Test 1: FAIL"; // Pass
-var y; if (y == nil) print "Test 2: PASS"; else print "Test 2: FAIL"; // Pass
-x = 5; x = x + 2; if (x == 7) print "Test 3: PASS"; else print "Test 3: FAIL"; // Pass
-var z = "test"; if (z == "test") print "Test 4: PASS"; else print "Test 4: FAIL"; // Pass
-var a = true; if (a) print "Test 5: PASS"; else print "Test 5: FAIL"; // Pass
+var x = 10; if (x == 10) {pass_count=pass_count+1; print "Test 1: Pass";} else "Test 1: FAIL";  test_count = test_count +1; // Pass
+var y; if (y == nil) {pass_count=pass_count+1; print "Test 2: Pass";} else "Test 2: FAIL";  test_count = test_count +1; // Pass
+x = 5; x = x + 2; if (x == 7) {pass_count=pass_count+1; print "Test 3: Pass";} else "Test 3: FAIL";  test_count = test_count +1; // Pass
+var z = "test"; if (z == "test") {pass_count=pass_count+1; print "Test 4: Pass";} else "Test 4: FAIL";  test_count = test_count +1; // Pass
+var a = true; if (a) {pass_count=pass_count+1; print "Test 5: Pass";} else "Test 5: FAIL";  test_count = test_count +1; // Pass
 
 // Arithmetic
-if (1 + 2 == 3) print "Test 6: PASS"; else print "Test 6: FAIL"; // Pass
-if (5 - 3 == 2) print "Test 7: PASS"; else print "Test 7: FAIL"; // Pass
-if (4 * 2 == 8) print "Test 8: PASS"; else print "Test 8: FAIL"; // Pass
-if (8 / 2 == 4) print "Test 9: PASS"; else print "Test 9: FAIL"; // Pass
-if (10 - 7 + 4 == 7) print "Test 10: PASS"; else print "Test 10: FAIL"; // Pass
-if ((5 * 3) / (6 / 2) == 5) print "Test 11: PASS"; else print "Test 11: FAIL"; // Pass
+if (1 + 2 == 3) {pass_count=pass_count+1; print "Test 6: Pass";} else "Test 6: FAIL";  test_count = test_count +1; // Pass
+if (5 - 3 == 2) {pass_count=pass_count+1; print "Test 7: Pass";} else "Test 7: FAIL";  test_count = test_count +1; // Pass
+if (4 * 2 == 8) {pass_count=pass_count+1; print "Test 8: Pass";} else "Test 8: FAIL";  test_count = test_count +1; // Pass
+if (8 / 2 == 4) {pass_count=pass_count+1; print "Test 9: Pass";} else "Test 9: FAIL";  test_count = test_count +1; // Pass
+if (10 - 7 + 4 == 7) {pass_count=pass_count+1; print "Test 10: Pass";} else "Test 10: FAIL";  test_count = test_count +1; // Pass
+if ((5 * 3) / (6 / 2) == 5) {pass_count=pass_count+1; print "Test 11: Pass";} else "Test 11: FAIL";  test_count = test_count +1; // Pass
 
 // Comparison
-if (5 > 3) print "Test 12: PASS"; else print "Test 12: FAIL"; // Pass
-if (5 < 6) print "Test 13: PASS"; else print "Test 13: FAIL"; // Pass
-if (3 >= 3) print "Test 14: PASS"; else print "Test 14: FAIL"; // Pass
-if (3 <= 4) print "Test 15: PASS"; else print "Test 15: FAIL"; // Pass
-if (5 == 5) print "Test 16: PASS"; else print "Test 16: FAIL"; // Pass
-if (5 != 3) print "Test 17: PASS"; else print "Test 17: FAIL"; // Pass
-if (!(5 < 3)) print "Test 18: PASS"; else print "Test 18: FAIL"; // Pass
+if (5 > 3) {pass_count=pass_count+1; print "Test 12: Pass";} else "Test 12: FAIL";  test_count = test_count +1; // Pass
+if (5 < 6) {pass_count=pass_count+1; print "Test 13: Pass";} else "Test 13: FAIL";  test_count = test_count +1; // Pass
+if (3 >= 3) {pass_count=pass_count+1; print "Test 14: Pass";} else "Test 14: FAIL";  test_count = test_count +1; // Pass
+if (3 <= 4) {pass_count=pass_count+1; print "Test 15: Pass";} else "Test 15: FAIL";  test_count = test_count +1; // Pass
+if (5 == 5) {pass_count=pass_count+1; print "Test 16: Pass";} else "Test 16: FAIL";  test_count = test_count +1; // Pass
+if (5 != 3) {pass_count=pass_count+1; print "Test 17: Pass";} else "Test 17: FAIL";  test_count = test_count +1; // Pass
+if (!(5 < 3)) {pass_count=pass_count+1; print "Test 18: Pass";} else "Test 18: FAIL";  test_count = test_count +1; // Pass
 
 // Logic
-if (true and true) print "Test 19: PASS"; else print "Test 19: FAIL"; // Pass
-if (true or false) print "Test 20: PASS"; else print "Test 20: FAIL"; // Pass
-if (!false) print "Test 21: PASS"; else print "Test 21: FAIL"; // Pass
-if (!(true and false)) print "Test 22: PASS"; else print "Test 22: FAIL"; // Pass
-if (true and (false or true)) print "Test 23: PASS"; else print "Test 23: FAIL"; // Pass
+if (true and true) {pass_count=pass_count+1; print "Test 19: Pass";} else "Test 19: FAIL";  test_count = test_count +1; // Pass
+if (true or false) {pass_count=pass_count+1; print "Test 20: Pass";} else "Test 20: FAIL";  test_count = test_count +1; // Pass
+if (!false) {pass_count=pass_count+1; print "Test 21: Pass";} else "Test 21: FAIL";  test_count = test_count +1; // Pass
+if (!(true and false)) {pass_count=pass_count+1; print "Test 22: Pass";} else "Test 22: FAIL";  test_count = test_count +1; // Pass
+if (true and (false or true)) {pass_count=pass_count+1; print "Test 23: Pass";} else "Test 23: FAIL";  test_count = test_count +1; // Pass
 
 // If statements
-if (true) print "Test 24: PASS"; else print "Test 24: FAIL"; // Pass
-if (false) {} else print "Test 25: PASS"; // Pass
-if (1 + 1 == 2) print "Test 26: PASS"; else print "Test 26: FAIL"; // Pass
-if (1 > 2) {} else print "Test 27: PASS";
+if (true) {pass_count=pass_count+1; print "Test 24: Pass";} else "Test 24: FAIL";  test_count = test_count +1; // Pass
+if (false) {} else {pass_count=pass_count+1; "Test 25: Pass";} test_count = test_count +1; // Pass
+if (1 + 1 == 2) {pass_count=pass_count+1; print "Test 26: Pass";} else "Test 26: FAIL";  test_count = test_count +1; // Pass
+if (1 > 2) {} else {pass_count=pass_count+1; "Test 27: Pass";}
 
 // Loops
-var i = 0; while (i < 3) { i = i + 1; } if (i == 3) print "Test 28: PASS"; else print "Test 28: FAIL"; // Pass
-var j; for (j = 0; j < 3; j = j + 1) {} if (j == 3) print "Test 29: PASS"; else print "Test 29: FAIL"; // Pass
-var count = 0; while (count < 5) { count = count + 1; } if (count == 5) print "Test 30: PASS"; else print "Test 30: FAIL"; // Pass
-var k; for (k = 10; k > 5; k = k - 1) {} if (k == 5) print "Test 31: PASS"; else print "Test 31: FAIL"; // Pass
+var i = 0; while (i < 3) { i = i + 1; } if (i == 3) {pass_count=pass_count+1; print "Test 28: Pass";} else "Test 28: FAIL";  test_count = test_count +1; // Pass
+var j; for (j = 0; j < 3; j = j + 1) {} if (j == 3) {pass_count=pass_count+1; print "Test 29: Pass";} else "Test 29: FAIL";  test_count = test_count +1; // Pass
+var count = 0; while (count < 5) { count = count + 1; } if (count == 5) {pass_count=pass_count+1; print "Test 30: Pass";} else "Test 30: FAIL";  test_count = test_count +1; // Pass
+var k; for (k = 10; k > 5; k = k - 1) {} if (k == 5) {pass_count=pass_count+1; print "Test 31: Pass";} else "Test 31: FAIL";  test_count = test_count +1; // Pass
 
 // Functions
-fun add(a, b) { return a + b; } // Pass
-if (add(3, 4) == 7) print "Test 32: PASS"; else print "Test 32: FAIL"; // Pass
+fun add(a, b) { return a + b; }  test_count = test_count +1; // Pass
+if (add(3, 4) == 7) {pass_count=pass_count+1; print "Test 32: Pass";} else "Test 32: FAIL";  test_count = test_count +1; // Pass
 
-fun greet() { print "Test 33: PASS"; } // Pass
+fun greet() { {pass_count=pass_count+1; print "Test 33: Pass";} }  test_count = test_count +1; // Pass
 greet();
 
 fun square(n) { return n * n; }
-if (square(3) == 9) print "Test 34: PASS"; else print "Test 34: FAIL"; // Pass
+if (square(3) == 9) {pass_count=pass_count+1; print "Test 34: Pass";} else "Test 34: FAIL";  test_count = test_count +1; // Pass
 
 fun multiply(a, b) { return a * b; }
-if (multiply(5, 4) == 20) print "Test 35: PASS"; else print "Test 35: FAIL"; // Pass
+if (multiply(5, 4) == 20) {pass_count=pass_count+1; print "Test 35: Pass";} else "Test 35: FAIL";  test_count = test_count +1; // Pass
 
 fun factorial(n) { if (n <= 1) return 1; return n * factorial(n - 1); }
-if (factorial(5) == 120) print "Test 36: PASS"; else print "Test 36: FAIL"; // Pass
+if (factorial(5) == 120) {pass_count=pass_count+1; print "Test 36: Pass";} else "Test 36: FAIL";  test_count = test_count +1; // Pass
 
 fun fibonacci(n) { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); }
-if (fibonacci(6) == 8) print "Test 37: PASS"; else print "Test 37: FAIL"; // Pass
+if (fibonacci(6) == 8) {pass_count=pass_count+1; print "Test 37: Pass";} else "Test 37: FAIL";  test_count = test_count +1; // Pass
 
 // Classes
-class Person { init(name) { this.name = name; } sayHi() { if (this.name == "Alice") print "Test 38: PASS"; else print "Test 38: FAIL"; } } // Pass
+class Person { init(name) { this.name = name; } sayHi() { if (this.name == "Alice") {pass_count=pass_count+1; print "Test 38: Pass";} else "Test 38: FAIL"; } }  test_count = test_count +1; // Pass
 var p = Person("Alice");
 p.sayHi();
 
 class Math { square(n) { return n * n; } }
 var m = Math(); 
 var s = m.square(5);
-if (s == 25) print "Test 39: PASS"; else print "Test 39: FAIL"; // Pass
+if (s == 25) {pass_count=pass_count+1; print "Test 39: Pass";} else "Test 39: FAIL";  test_count = test_count +1; // Pass
 
 class Counter {
   init(start) { this.count = start; }
@@ -80,64 +80,91 @@ class Counter {
 }
 var c = Counter(10);
 c.increment(); c.increment();
-if (c.getCount() == 12) print "Test 40: PASS"; else print "Test 40: FAIL"; // Pass
+if (c.getCount() == 12) {pass_count=pass_count+1; print "Test 40: Pass";} else "Test 40: FAIL";  test_count = test_count +1; // Pass
 
 // Edge cases
-if (nil == nil) print "Test 41: PASS"; else print "Test 41: FAIL"; // Pass
-if (true) print "Test 42: PASS"; else print "Test 42: FAIL"; // Pass
-if (!false) print "Test 43: PASS"; else print "Test 43: FAIL";
-var undef; if (undef == nil) print "Test 44: PASS"; else print "Test 44: FAIL"; // Pass
-if ("a" + "b" == "ab") print "Test 45: PASS"; else print "Test 45: FAIL"; // Pass
-if ("" == "") print "Test 46: PASS"; else print "Test 46: FAIL"; // Pass
-if (" " != "") print "Test 47: PASS"; else print "Test 47: FAIL"; // Pass
+if (nil == nil) {pass_count=pass_count+1; print "Test 41: Pass";} else "Test 41: FAIL";  test_count = test_count +1; // Pass
+if (true) {pass_count=pass_count+1; print "Test 42: Pass";} else "Test 42: FAIL";  test_count = test_count +1; // Pass
+if (!false) {pass_count=pass_count+1; print "Test 43: Pass";} else "Test 43: FAIL";
+var undef; if (undef == nil) {pass_count=pass_count+1; print "Test 44: Pass";} else "Test 44: FAIL";  test_count = test_count +1; // Pass
+if ("a" + "b" == "ab") {pass_count=pass_count+1; print "Test 45: Pass";} else "Test 45: FAIL";  test_count = test_count +1; // Pass
+if ("" == "") {pass_count=pass_count+1; print "Test 46: Pass";} else "Test 46: FAIL";  test_count = test_count +1; // Pass
+if (" " != "") {pass_count=pass_count+1; print "Test 47: Pass";} else "Test 47: FAIL";  test_count = test_count +1; // Pass
 
 // Combined Tests
-var x = 5; var y = 3; if (x > y and x - y == 2) print "Test 48: PASS"; else print "Test 48: FAIL"; // Pass
-fun test(n) { if (n > 0) return true; return false; } // Pass
-if (test(1) and !test(0)) print "Test 49: PASS"; else print "Test 49: FAIL"; // Pass
+var x = 5; var y = 3; if (x > y and x - y == 2) {pass_count=pass_count+1; print "Test 48: Pass";} else "Test 48: FAIL";  test_count = test_count +1; // Pass
+fun test(n) { if (n > 0) return true; return false; }  test_count = test_count +1; // Pass
+if (test(1) and !test(0)) {pass_count=pass_count+1; print "Test 49: Pass";} else "Test 49: FAIL";  test_count = test_count +1; // Pass
 class Calculator { add(a, b) { return a + b; } } 
 var calc = Calculator(); 
-if (calc.add(10, 15) == 25) print "Test 50: PASS"; else print "Test 50: FAIL"; // Pass
-var str = "Hello, " + "world!"; if (str == "Hello, world!") print "Test 51: PASS"; else print "Test 51: FAIL"; // Pass
+if (calc.add(10, 15) == 25) {pass_count=pass_count+1; print "Test 50: Pass";} else "Test 50: FAIL";  test_count = test_count +1; // Pass
+var str = "Hello, " + "world!"; if (str == "Hello, world!") {pass_count=pass_count+1; print "Test 51: Pass";} else "Test 51: FAIL";  test_count = test_count +1; // Pass
 
 
 // More Variable
-var str = "Hello"; str = str + " World!"; if (str == "Hello World!") print "Test 52: PASS"; else print "Test 52: FAIL"; // Pass
-var num = 20; num = num - 5; if (num == 15) print "Test 53: PASS"; else print "Test 53: FAIL"; // Pass
-var bool = false; bool = !bool; if (bool) print "Test 54: PASS"; else print "Test 54: FAIL"; // Pass
-var outer = "outer"; {var outer = "inner"; if (outer == "inner") print "Test 55.1: PASS"; else print "Test 55.1: FAIL";} if (outer == "outer") print "Test 55.2: PASS"; else print "Test 55.2: FAIL"; // Pass
-var self = 10; self = self + self; if (self == 20) print "Test 56: PASS"; else print "Test 56: FAIL"; // Pass
+var str = "Hello"; str = str + " World!"; if (str == "Hello World!") {pass_count=pass_count+1; print "Test 52: Pass";} else "Test 52: FAIL";  test_count = test_count +1; // Pass
+var num = 20; num = num - 5; if (num == 15) {pass_count=pass_count+1; print "Test 53: Pass";} else "Test 53: FAIL";  test_count = test_count +1; // Pass
+var bool = false; bool = !bool; if (bool) {pass_count=pass_count+1; print "Test 54: Pass";} else "Test 54: FAIL";  test_count = test_count +1; // Pass
+var outer = "outer"; {var outer = "inner"; if (outer == "inner") {pass_count=pass_count+1; print "Test 55.1: Pass";} else "Test 55.1: FAIL";} if (outer == "outer") {pass_count=pass_count+1; print "Test 55.2: Pass";} else "Test 55.2: FAIL";  test_count = test_count +1; // Pass
+var self = 10; self = self + self; if (self == 20) {pass_count=pass_count+1; print "Test 56: Pass";} else "Test 56: FAIL";  test_count = test_count +1; // Pass
 
 // More Arithmetic
-if (-5 + 3 == -2) print "Test 57: PASS"; else print "Test 57: FAIL"; // Pass
-if (-10 - 5 == -15) print "Test 58: PASS"; else print "Test 58: FAIL"; // Pass
-if (7 * 0 == 0) print "Test 59: PASS"; else print "Test 59: FAIL"; // Pass
-if (7 / 2 == 3.5) print "Test 60: PASS"; else print "Test 60: FAIL"; // Pass
-if ((2 + 3) * 4 == 20) print "Test 61: PASS"; else print "Test 61: FAIL"; // Pass
-if (2 + 3 * 4 == 14) print "Test 62: PASS"; else print "Test 62: FAIL"; // Pass
-if (1000000 + 2000000 == 3000000) print "Test 63: PASS"; else print "Test 63: FAIL"; // Pass
-if ((10 - 5) * (2 + 3) / 5 == 5) print "Test 64: PASS"; else print "Test 64: FAIL"; // Pass
+if (-5 + 3 == -2) {pass_count=pass_count+1; print "Test 57: Pass";} else "Test 57: FAIL";  test_count = test_count +1; // Pass
+if (-10 - 5 == -15) {pass_count=pass_count+1; print "Test 58: Pass";} else "Test 58: FAIL";  test_count = test_count +1; // Pass
+if (7 * 0 == 0) {pass_count=pass_count+1; print "Test 59: Pass";} else "Test 59: FAIL";  test_count = test_count +1; // Pass
+if (7 / 2 == 3.5) {pass_count=pass_count+1; print "Test 60: Pass";} else "Test 60: FAIL";  test_count = test_count +1; // Pass
+if ((2 + 3) * 4 == 20) {pass_count=pass_count+1; print "Test 61: Pass";} else "Test 61: FAIL";  test_count = test_count +1; // Pass
+if (2 + 3 * 4 == 14) {pass_count=pass_count+1; print "Test 62: Pass";} else "Test 62: FAIL";  test_count = test_count +1; // Pass
+if (1000000 + 2000000 == 3000000) {pass_count=pass_count+1; print "Test 63: Pass";} else "Test 63: FAIL";  test_count = test_count +1; // Pass
+if ((10 - 5) * (2 + 3) / 5 == 5) {pass_count=pass_count+1; print "Test 64: Pass";} else "Test 64: FAIL";  test_count = test_count +1; // Pass
 
 // More Comparison
-if (-5 < -3) print "Test 65: PASS"; else print "Test 65: FAIL"; // Pass
-if (5 > 0) print "Test 66: PASS"; else print "Test 66: FAIL"; // Pass
-if (0 >= 0) print "Test 67: PASS"; else print "Test 67: FAIL"; // Pass
-if (-3 <= -2) print "Test 68: PASS"; else print "Test 68: FAIL"; // Pass
-if (-5 == -5) print "Test 69: PASS"; else print "Test 69: FAIL"; // Pass
-if (5 != "5") print "Test 70: PASS"; else print "Test 70: FAIL"; // Pass
-if (!false) print "Test 71: PASS"; else print "Test 71: FAIL"; // Pass
+if (-5 < -3) {pass_count=pass_count+1; print "Test 65: Pass";} else "Test 65: FAIL";  test_count = test_count +1; // Pass
+if (5 > 0) {pass_count=pass_count+1; print "Test 66: Pass";} else "Test 66: FAIL";  test_count = test_count +1; // Pass
+if (0 >= 0) {pass_count=pass_count+1; print "Test 67: Pass";} else "Test 67: FAIL";  test_count = test_count +1; // Pass
+if (-3 <= -2) {pass_count=pass_count+1; print "Test 68: Pass";} else "Test 68: FAIL";  test_count = test_count +1; // Pass
+if (-5 == -5) {pass_count=pass_count+1; print "Test 69: Pass";} else "Test 69: FAIL";  test_count = test_count +1; // Pass
+if (5 != "5") {pass_count=pass_count+1; print "Test 70: Pass";} else "Test 70: FAIL";  test_count = test_count +1; // Pass
+if (!false) {pass_count=pass_count+1; print "Test 71: Pass";} else "Test 71: FAIL";  test_count = test_count +1; // Pass
 
 // More Logic
-if (false and false) print "Test 72: FAIL"; else print "Test 72: PASS"; // Pass
-if (true or true) print "Test 73: PASS"; else print "Test 73: FAIL"; // Pass
-if (true and false) print "Test 74: FAIL"; else print "Test 74: PASS"; // Pass
-if (false or true) print "Test 75: PASS"; else print "Test 75: FAIL"; // Pass
-if (!!true) print "Test 76: PASS"; else print "Test 76: FAIL"; // Pass
-if (true and (false or (true and true))) print "Test 77: PASS"; else print "Test 77: FAIL"; // Pass
-if (5 > 3 and 3 < 5) print "Test 78: PASS"; else print "Test 78: FAIL"; // Pass
-if (5 < 3 or 6 > 4) print "Test 79: PASS"; else print "Test 79: FAIL"; // Pass
-if (!(true and false)) print "Test 80: PASS"; else print "Test 80: FAIL"; // Pass
+if (false and false) { print "Test 72: FAIL";} else{pass_count=pass_count+1; "Test 72: Pass";}  test_count = test_count +1; // Pass
+if (true or true) {pass_count=pass_count+1; print "Test 73: Pass";} else "Test 73: FAIL";  test_count = test_count +1; // Pass
+if (true and false) {pass_count=pass_count+1; print "Test 74: FAIL";} else "Test 74: Pass";  test_count = test_count +1; // Pass
+if (false or true) {pass_count=pass_count+1; print "Test 75: Pass";} else "Test 75: FAIL";  test_count = test_count +1; // Pass
+if (!!true) {pass_count=pass_count+1; print "Test 76: Pass";} else "Test 76: FAIL";  test_count = test_count +1; // Pass
+if (true and (false or (true and true))) {pass_count=pass_count+1; print "Test 77: Pass";} else "Test 77: FAIL";  test_count = test_count +1; // Pass
+if (5 > 3 and 3 < 5) {pass_count=pass_count+1; print "Test 78: Pass";} else "Test 78: FAIL";  test_count = test_count +1; // Pass
+if (5 < 3 or 6 > 4) {pass_count=pass_count+1; print "Test 79: Pass";} else "Test 79: FAIL";  test_count = test_count +1; // Pass
+if (!(true and false)) {pass_count=pass_count+1; print "Test 80: Pass";} else "Test 80: FAIL";  test_count = test_count +1; // Pass
 
+//More If
+if (1!=2) {pass_count=pass_count+1; print "Test 81: Pass";} else "Test 81: FAIL";  test_count = test_count +1; // Pass
+if ((1+2+3+4+5+6)>(5+4+3+2+1)) {pass_count=pass_count+1; print "Test 82: Pass";} else "Test 82: FAIL";  test_count = test_count +1; // Pass
+if ("a"!="ba") {pass_count=pass_count+1; print "Test 83: Pass";} else "Test 83: FAIL";  test_count = test_count +1; // Pass
+if ("car"=="car") {pass_count=pass_count+1; print "Test 84: Pass";} else "Test 84: FAIL";  test_count = test_count +1; // Pass
+if (-12!=12) {pass_count=pass_count+1; print "Test 85: Pass";} else "Test 85: FAIL";  test_count = test_count +1; // Pass
+if (("a"+"b")=="ab") {pass_count=pass_count+1; print "Test 86: Pass";} else "Test 86: FAIL";  test_count = test_count +1; // Pass
+if ((1+1)!=(1+"1")) {pass_count=pass_count+1; print "Test 87: Pass";} else "Test 87: FAIL";  test_count = test_count +1; // Pass
+if (1!=true) {pass_count=pass_count+1; print "Test 88: Pass";} else "Test 88: FAIL";  test_count = test_count +1; // Pass
+if ("0000000000011"=="0000000000011") {pass_count=pass_count+1; print "Test 89: Pass";} else "Test 89: FAIL";  test_count = test_count +1; // Pass
+if ("227"!=227) {pass_count=pass_count+1; print "Test 90: Pass";} else "Test 90: FAIL";  test_count = test_count +1; // Pass
 
+//More For
+var j; for (j = 20; j > 0; j = j - 1) {} if (j == 0) {pass_count=pass_count+1; print "Test 91: Pass";} else "Test 91: FAIL";  test_count = test_count +1; // Pass
+var a; for (a = 100; a > 6; a = a-3) {} if (a == 4) {pass_count=pass_count+1; print "Test 92: Pass";} else "Test 92: FAIL";  test_count = test_count +1; // Pass
+var b; for (b = -27; b > -180; b = b - 1) {} if (b == -180) {pass_count=pass_count+1; print "Test 93: Pass";} else "Test 93: FAIL";  test_count = test_count +1; // Pass
+var c; for (c= 20002; c > 0; c = c - 1) {} if (c == 0) {pass_count=pass_count+1; print "Test 94: Pass";} else "Test 94: FAIL";  test_count = test_count +1; // Pass
+var d; for (d = 0; d >= 0; d = d - 1) {} if (d == -1) {pass_count=pass_count+1; print "Test 95: Pass";} else "Test 95: FAIL";  test_count = test_count +1; // Pass
+//More While
+var i = 0; while (i < 30000) { i = i + 1; } if (i == 30000) {pass_count=pass_count+1; print "Test 96: Pass";} else "Test 96: FAIL";  test_count = test_count +1; // Pass
+var k = 26; while (k > -227) { k = k -2; } if (k <-227) {pass_count=pass_count+1; print "Test 97: Pass";} else "Test 97: FAIL";  test_count = test_count +1; // Pass
+var m = "a"; while (m !="aBBBBBBBBBBBBBBBBB") { m = m +"B"; } if (m == "aBBBBBBBBBBBBBBBBB") {pass_count=pass_count+1; print "Test 98: Pass";} else "Test 98: FAIL";  test_count = test_count +1; // Pass
+var t = "1"; while (t != "13333333333333333") { t = t + 3; } if (t == "13333333333333333") {pass_count=pass_count+1; print "Test 99: Pass";} else "Test 99: FAIL";  test_count = test_count +1; // Pass
+var g = t; while (g!="133333333333333332222222222222") { g = g + 2; } if (g == "133333333333333332222222222222") {pass_count=pass_count+1; print "Test 100: Pass";} else "Test 100: FAIL";  test_count = test_count +1; // Pass
 
+//Fun Idea
+var A1= "p";var A2= "a";var A3= "s";var A4= "s"; if((A1+A2+A3+A4)=="pass"){pass_count=pass_count+1; print "Test 101: Pass";} else "Test 101: FAIL";  test_count = test_count +1; // Pass
+
+print "# Test Cases: " +test_count + " " + "Pass: " + pass_count +" " + "Fail: " + (test_count-pass_count);
 
